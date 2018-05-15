@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>位置点管理</title>
+    <link th:href="@{/common/css/base.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/assets/pnotify/1.2.0/jquery.pnotify.default.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/assets/pnotify/1.2.0/custom.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+    <section th:fragment="content">
+        <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                    aria-hidden="true">&times;</span></button>
+            <span th:text="${message}"></span>
+        </div>
+        <div class="box">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a th:href="@{/sys/locations}">位置点列表</a></li>
+                    <li><a shiro:hasPermission="sys:location:edit" th:href="@{/sys/locations/new}">位置点添加</a></li>
+                </ul>
+                <div class="box-body">
+                    <form class="form-inline" style="padding-left: 20px" th:action="@{/sys/locations}" method="get">
+                        <div class="form-group">
+                            <label for="locationname">位置点名称:</label>
+                            <input type="text" class="form-control" id="locationname" name="locationname" placeholder="位置点名称" th:value="${location.locationname}">
+                        </div>
+                        <div class="form-group">
+                            <label>文物名称:</label>
+                            <input type="text" class="form-control" id="relic.name" name="relic.name" placeholder="文物名称" th:value="${location.relic == null}?'':${location.relic.name}" >
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn">查询</button>
+                    </form>
+                    <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+                        <table class="table table-hover table-condensed table-striped table-bordered">
+                            <thead>
+                                <th>#</th>
+                                <th>文物</th>
+                                <th>名称</th>
+                                <th>绑定设备</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </thead>
+                            <tbody>
+                                <tr th:each="location:${pageInfo.list}">
+                                    <td th:text="${locationStat.count}"></td>
+                                    <td th:text="${location.relic == null}?'':${location.relic.name}"></td>
+                                    <td th:text="${location.locationname}"></td>
+                                    <td th:text="${location.nodeid}"></td>
+                                    <td th:text="${#dates.format(location.createtime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                                    <td>
+                                        <a shiro:hasPermission="sys:location:edit" class="btn btn-warning btn-xs"
+                                           th:href="@{/sys/locations/edit(id=${location.id})}">修改
+                                            <span class="glyphicon glyphicon-edit"></span>
+                                        </a>
+                                        <a shiro:hasPermission="sys:location:edit" class="btn btn-danger btn-xs btn-del" th:id="${location.id}">删除
+                                            <span class="glyphicon glyphicon-remove"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+                    <div class="box-footer clearfix">
+                        <ul class="pagination pagination-sm no-margin pull-right" >
+                            <li th:class="${pageInfo.isFirstPage}?'disabled'">
+                                <a aria-label="Previous" id="previous" th:onclick="${pageInfo.isFirstPage}?'return false'">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li th:class="${navigatepageNum==pageInfo.pageNum}?'active'" th:each="navigatepageNum : ${pageInfo.navigatepageNums}">
+                                <a th:data-id="${navigatepageNum}" th:value="${navigatepageNum}" th:text="${navigatepageNum}" class="navigatePage"></a>
+                            </li>
+                            <li th:class="${pageInfo.isLastPage}?'disabled'">
+                                <a aria-label="Next" id="next" th:onclick="${pageInfo.isLastPage}?'return false'">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(pageInfo.list)}" style="margin: 30px;padding-bottom: 30px">
+                    <h3>暂无数据</h3>
+                </div>
+            </div>
+        </div>
+        <div th:include="deleteModel :: deleteModel"></div>
+    </section>
+    <div th:fragment="script">
+        <script type="text/javascript" th:src="@{/assets/pnotify/1.2.0/jquery.pnotify.min.js}"></script>
+        <script type="text/javascript" th:src="@{/common/pnotify.js}"></script>
+        <script type="text/javascript" th:inline="javascript">
+//            设备分页
+            $(function() {
+                var isFirstPage=[[${pageInfo.isFirstPage}]];
+                var isLastPage=[[${pageInfo.isLastPage}]];
+                var pageSize = [[${pageInfo.pageSize}]];
+                var locationname = $("#locationname").val();
+                var name = $("#name").val();
+                var uri = [[@{/sys/locations}]]+"?pageSize=" + pageSize;
+                if (locationname != null && locationname != "") {
+                    uri = uri + "&locationname=" + locationname;
+                }
+                if (name != null && name != ""){
+                    uri = uri + "&name=" + name;
+                }
+                $("#previous").click(function () {
+                    var pageNum = [[${pageInfo.prePage}]];
+                    if (isFirstPage == false) {
+                        var preUri = uri + "&pageNum=" + pageNum;
+                        window.location.href = preUri;
+                    }
+                });
+                $(".navigatePage").click(function () {
+                    var pageNum = $(this).data("id");
+                    var navUri = uri + "&pageNum=" + pageNum;
+                    window.location.href = navUri;
+                });
+                $("#next").click(function () {
+                    var pageNum = [[${pageInfo.nextPage}]];
+                    if (isLastPage == false) {
+                        var nextUri = uri + "&pageNum=" + pageNum;
+                        window.location.href = nextUri;
+                    }
+                });
+            });
+            $(function () {
+//                删除提示信息
+                var locationId;
+                var $this;
+                $(".btn-del").click(function () {
+                    $this =$(this);
+                    locationId =$this.attr("id");
+                    $("#myModal").modal("toggle");
+                });
+                $('#okBtn').click(function () {
+                    $("#myModal").modal("toggle");
+                    window.location.href=[[@{/sys/locations/delete}]]+"?id="+locationId;
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

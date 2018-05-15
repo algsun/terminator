@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.microwise.terminator.sys.mapper.SensorinfoMapper">
+    <resultMap id="BaseResultMap" type="com.microwise.terminator.sys.entity.Sensorinfo">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="sensorPhysicalid" jdbcType="INTEGER" property="sensorphysicalid"/>
+        <result column="escape_sensor_id" jdbcType="INTEGER" property="escapeSensorId"/>
+        <result column="en_name" jdbcType="VARCHAR" property="enName"/>
+        <result column="cn_name" jdbcType="VARCHAR" property="cnName"/>
+        <result column="sensorPrecision" jdbcType="INTEGER" property="sensorprecision"/>
+        <result column="units" jdbcType="VARCHAR" property="units"/>
+        <result column="positions" jdbcType="INTEGER" property="positions"/>
+        <result column="isActive" jdbcType="INTEGER" property="isactive"/>
+        <result column="showType" jdbcType="INTEGER" property="showtype"/>
+        <result column="minValue" jdbcType="DOUBLE" property="minvalue"/>
+        <result column="maxValue" jdbcType="DOUBLE" property="maxvalue"/>
+        <result column="rangeType" jdbcType="INTEGER" property="rangetype"/>
+        <result column="signType" jdbcType="INTEGER" property="signtype"/>
+        <result column="conditionType" jdbcType="INTEGER" property="conditiontype"/>
+        <result column="target" jdbcType="REAL" property="target"/>
+        <result column="floating" jdbcType="REAL" property="floating"/>
+    </resultMap>
+
+    <select id="findSensorInfoList" parameterType="string"
+            resultType="Sensorinfo">
+            SELECT
+              ms.sensorPhysicalid,
+              ms.en_name AS enName,
+              ms.`cn_name` AS cnName,
+              ms.sensorPrecision,
+              ms.units,
+              ms.positions,
+              ms.isActive,
+              ms.showType
+            FROM
+              m_location_sensor mls,
+              m_sensorinfo ms
+            WHERE mls.sensorPhysicalid = ms.sensorPhysicalid
+              AND mls.locationId = #{locationId}
+  </select>
+
+    <select id="findSensorinfos" resultType="Sensorinfo">
+        SELECT
+        ms.sensorPhysicalid,
+        ms.en_name AS enName,
+        ms.`cn_name` AS cnName,
+        ms.sensorPrecision,
+        ms.units,
+        ms.positions,
+        ms.isActive,
+        ms.showType
+        FROM
+        m_location_sensor mls,
+        m_sensorinfo ms
+        WHERE mls.sensorPhysicalid = ms.sensorPhysicalid
+        AND ms.sensorPhysicalid IN
+        <foreach collection="physicalIds" open="(" separator="," close=")" item="physicalid">
+            #{physicalid}
+        </foreach>
+    </select>
+    <select id="findNameByPhysicalId" parameterType="java.lang.Integer" resultType="java.lang.String">
+        SELECT
+        s.cn_name
+        FROM
+        m_sensorinfo AS s
+        WHERE
+        s.sensorPhysicalid = #{id}
+    </select>
+</mapper>

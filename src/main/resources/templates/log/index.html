@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>系统设置-日志列表</title>
+</head>
+<body>
+    <section th:fragment="content">
+        <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                    aria-hidden="true">&times;</span></button>
+            <span th:text="${message}"></span>
+        </div>
+        <div class="box">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a th:href="@{/sys/logs}">日志列表</a></li>
+                </ul>
+                <div class="box-body">
+                    <form class="form-inline" style="padding-left: 20px" th:action="@{/sys/logs}" id="logForm" method="get">
+                        <div class="form-group">
+                            <label for="title">操作菜单:</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="操作菜单" th:value="${log.title}">
+                        </div>
+                        <div class="form-group">
+                            <label for="createByName">操作用户:</label>
+                            <input type="text" class="form-control" id="createByName" name="createByName" placeholder="操作用户" th:value="${log.createByName}">
+                        </div>
+                        <div class="form-group">
+                            <label for="requestUri">URI:</label>
+                            <input type="text" class="form-control" id="requestUri" name="requestUri" placeholder="URI" th:value="${log.requestUri}">
+                        </div>
+                        <div class="form-group has-feedback">
+                            <label>日期范围:</label>
+                            <input type="text" readonly="readonly" maxlength="20" class="form-control" id="beginDate" name="beginDate" placeholder="开始日期" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',isShowClear:false,maxDate:'%y-%M-%d'});" th:value="${#dates.format(log.beginDate,'yyyy-MM-dd HH:mm:ss')}">
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                        <div class="form-group has-feedback">
+                            --
+                            <input type="text" readonly="readonly" maxlength="20" class="form-control" id="endDate" name="endDate" placeholder="结束日期" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',isShowClear:false,minDate:'#F{$dp.$D(\'beginDate\')}',maxDate:'%y-%M-%d'});" th:value="${#dates.format(log.endDate,'yyyy-MM-dd HH:mm:ss')}">
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn">查询</button>
+                    </form>
+                    <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+                        <table class="table table-hover table-condensed table-striped table-bordered">
+                            <thead>
+                            <th>#</th>
+                            <th>操作菜单</th>
+                            <th>操作用户</th>
+                            <th>所在机构</th>
+                            <th>URI</th>
+                            <th>提交方式</th>
+                            <th>操作者IP</th>
+                            <th>操作时间</th>
+                            </thead>
+                            <tbody>
+                            <tr th:each="log:${pageInfo.list}">
+                                <td th:text="${logStat.count}"></td>
+                                <td th:text="${log.title}"></td>
+                                <td th:text="${log.createByName}"></td>
+                                <td th:text="${log.officeName}"></td>
+                                <td th:text="${log.requestUri}"></td>
+                                <td th:text="${log.method}"></td>
+                                <td th:text="${log.remoteAddr}"></td>
+                                <td th:text="${#dates.format(log.createDate,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+                    <div class="box-footer clearfix">
+                        <ul class="pagination pagination-sm no-margin pull-right" >
+                            <li th:class="${pageInfo.isFirstPage}?'disabled'">
+                                <a aria-label="Previous" id="previous" th:onclick="${pageInfo.isFirstPage}?'return false'">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li th:class="${navigatepageNum==pageInfo.pageNum}?'active'" th:each="navigatepageNum : ${pageInfo.navigatepageNums}">
+                                <a th:data-id="${navigatepageNum}" th:value="${navigatepageNum}" th:text="${navigatepageNum}" class="navigatePage"></a>
+                            </li>
+                            <li th:class="${pageInfo.isLastPage}?'disabled'">
+                                <a aria-label="Next" id="next" th:onclick="${pageInfo.isLastPage}?'return false'">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(pageInfo.list)}" style="margin: 30px;padding-bottom: 30px">
+                    <h3>暂无数据</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div th:fragment="script">
+        <script type="text/javascript" th:src="@{/My97DatePicker/WdatePicker.js}"></script>
+        <script type="text/javascript" th:inline="javascript">
+//            日志分页
+            $(function() {
+                var isFirstPage=[[${pageInfo.isFirstPage}]];
+                var isLastPage=[[${pageInfo.isLastPage}]];
+                var pageSize = [[${pageInfo.pageSize}]];
+                var beginDate = $("#beginDate").val();
+                var endDate = $("#endDate").val();
+                var title = $("#title").val();
+                var createByName = $("#createByName").val();
+                var requestUri = $("#requestUri").val();
+                var uri = [[@{/sys/logs}]]+"?pageSize=" + pageSize + "&beginDate=" + beginDate + "&endDate=" + endDate;
+                if (title != null && title != "") {
+                    uri = uri + "&title=" + title;
+                }
+                if (createByName != null && createByName != "") {
+                    uri = uri + "&createByName=" + createByName;
+                }
+                if (requestUri != null && requestUri != "") {
+                    uri = uri + "&requestUri=" + requestUri;
+                }
+                $("#previous").click(function () {
+                    var pageNum = [[${pageInfo.prePage}]];
+                    if (isFirstPage == false) {
+                        var preUri = uri + "&pageNum=" + pageNum;
+                        window.location.href = preUri;
+                    }
+                });
+                $(".navigatePage").click(function () {
+                    var pageNum = $(this).data("id");
+                    var navUri = uri + "&pageNum=" + pageNum;
+                    window.location.href = navUri;
+                });
+                $("#next").click(function () {
+                    var pageNum = [[${pageInfo.nextPage}]];
+                    if (isLastPage == false) {
+                        var nextUri = uri + "&pageNum=" + pageNum;
+                        window.location.href = nextUri;
+                    }
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

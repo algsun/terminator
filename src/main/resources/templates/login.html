@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta th:replace="common/meta">
+    <title>系统登录</title>
+    <link th:replace="common/css"/>
+    <link th:href="@{webjars/adminlte/2.3.11/plugins/iCheck/all.css}"/>
+    <style>
+        /* css reset */
+        body {
+            color: #000;
+            background: #fff;
+            font-size: 12px;
+            line-height: 166.6%;
+            text-align: center;
+        }
+
+        body.move {
+            -webkit-transition: padding 0.3s ease;
+            -moz-transition: padding 0.3s ease;
+            -o-transition: padding 0.3s ease;
+            -ms-transition: padding 0.3s ease;
+            transition: padding 0.3s ease;
+        }
+
+        header, footer, section, aside, nav, hgroup, figure, figcaption {
+            display: block;
+            margin: 0;
+            padding: 0;
+            border: none
+        }
+
+        /* header */
+        .header {
+            height: 64px;
+            position: relative;
+            margin: 0 auto;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .section {
+            height: 608px;
+            position: relative;
+        }
+
+        .section .main {
+            width: 100%;
+            height: 608px;
+            position: relative;
+            clear: both;
+            margin-left: 0px;
+            margin-right: 0px;
+            background-repeat: inherit;
+            background-position: center top;
+        }
+
+        .footer {
+            height: 65px;
+            margin: 0 auto;
+        }
+
+        /* enable absolute positioning */
+        .inner-addon {
+            position: relative;
+        }
+
+        /* style icon */
+        .inner-addon .glyphicon {
+            position: absolute;
+            padding: 10px;
+            pointer-events: none;
+        }
+
+        /* align icon */
+        .left-addon .glyphicon {
+            left: 0px;
+        }
+
+        .right-addon .glyphicon {
+            right: 0px;
+        }
+
+        /* add padding  */
+        .left-addon input {
+            padding-left: 30px;
+        }
+
+        .right-addon input {
+            padding-right: 30px;
+        }
+
+        /* Page: Login / Register */
+        .login-logo {
+            font-size: 35px;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 300;
+        }
+
+        .login-logo a {
+            color: #444;
+        }
+
+        .login-page {
+            background: #d2d6de;
+        }
+
+        .login-box {
+            width: 360px;
+            margin: 100px auto;
+        }
+
+        @media (max-width: 768px) {
+            .login-box {
+                width: 90%;
+                margin-top: 20px;
+            }
+        }
+
+        .login-box-body {
+            height: 400px;
+            /*background: #fff;*/
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-top: 0;
+            color: #666;
+        }
+
+        .login-box-body .form-control-feedback,
+        .register-box-body .form-control-feedback {
+            color: #777;
+        }
+
+
+    </style>
+</head>
+<body class="hold-transition login-page move" style="background-color: #f5f4ed">
+<div class="container-fluid" style="padding-left: 0px; padding-right: 0px;">
+    <header class="header">
+        <h1>田野文物安全防范系统</h1>
+    </header>
+    <section class="section">
+        <div class="row main" style="background-image: url('images/xxwl.png')">
+            <div class="col-md-4 col-md-offset-7">
+                <div class="login-box">
+                    <!--<div class="login-logo">-->
+                    <!--<a href="../../index2.html"><b>Admin</b>LTE</a>-->
+                    <!--</div>-->
+                    <!-- /.login-logo -->
+                    <div class="login-box-body">
+                        <!--<p class="login-box-msg">Sign in to start your session</p>-->
+                        <div class="login-logo">
+                            <a href="#"><b>欢迎登录</b></a>
+                        </div>
+                        <form action="login" method="post" style="margin-top: 50px">
+                            <div class="form-group has-feedback">
+                                <input name="username" type="text" class="form-control" placeholder="用户名">
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <input name="password" type="password" class="form-control" placeholder="密码">
+                                <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                            </div>
+                            <div class="form-group has-feedback" th:if="${isValidateCodeLogin}">
+                                <label class="input-label mid" for="validateCode">验证码</label>
+                                <input type="text" id="validateCode" name="validateCode" maxlength="5" class="form-control" style="font-weight:bold;width:45px;"/>
+                                <img th:src="@{/servlet/validateCodeServlet}" onclick="$('.validateCodeRefresh').click();" class="mid validateCode"/>
+                                <a href="javascript:" onclick="$('.validateCode').attr('src','servlet/validateCodeServlet?'+new Date().getTime());" class="mid validateCodeRefresh" >看不清</a>
+                            </div>
+                            <div class="form-group has-feedback">
+                                <label for="rememberMe" title="下次不需要再登录">
+                                    <input type="checkbox" id="rememberMe" name="rememberMe" th:checked="${rememberMe}"/> 记住我（公共场所慎用）
+                                </label>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-8">
+                                    <!--<div class="checkbox icheck">-->
+                                    <!--<label>-->
+                                    <!--<input type="checkbox" name="rememberMe" value="true"/> 记住我-->
+                                    <!--</label>-->
+                                    <!--</div>-->
+                                </div>
+                                <!-- /.col -->
+                                <div class="col-xs-4">
+                                    <button type="submit" class="btn btn-primary btn-block btn-flat">登录</button>
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </form>
+
+                        <!--<a href="#">忘记密码</a><br>-->
+                        <!--<a href="register.html" class="text-center">Register a new membership</a>-->
+
+                    </div>
+                    <!-- /.login-box-body -->
+                </div>
+                <!-- /.login-box -->
+            </div>
+        </div>
+
+    </section>
+
+    <footer class="footer">
+        footer
+    </footer>
+</div>
+
+
+<script th:replace="common/js"></script>
+<script type="text/javascript" th:src="@{webjars/adminlte/2.3.11/plugins/iCheck/icheck.min.js}"></script>
+<script type="text/javascript">
+    /**
+     * 设置垂直居中
+     */
+    function VericalAlignBody() {
+        var nBodyHeight = 730;
+        var nClientHeight = document.documentElement.clientHeight;
+        if (nClientHeight >= nBodyHeight + 2) {
+            var nDis = (nClientHeight - nBodyHeight) / 2;
+            document.body.style.paddingTop = nDis + 'px';
+        } else {
+            document.body.style.paddingTop = '0px';
+        }
+    }
+    $(document).ready(function () {
+        VericalAlignBody();
+        $(window).resize(function () {
+            VericalAlignBody()
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+
+.info {
+    width: 320px;
+    height: 200px;
+    background-color: white;
+    box-shadow: 0 3px 14px rgba(0, 0, 100, .6);
+    overflow-y: auto;
+}
+
+div .info-head {
+    height: 30px;
+    width: 320px;
+    background-color: #2B94E7;
+    color: white;
+    position: fixed;
+    padding: 5px;
+}
+
+div .info-body {
+    margin-top: 40px;
+    width: 300px;
+    padding: 5px;
+}
+
+div .body-image {
+    width: 100px;
+    height: 70px;
+    float: left;
+    padding: 5px;
+}
+
+div .close-x {
+    float: right;
+}
+
+div .locationInfo {
+    border-radius: 10px 10px 10px 10px;
+}
+
+/*span {*/
+/*margin-left: 5px;*/
+/*font-size: 11px;*/
+/*}*/
+
+.legend {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    z-index: 160;
+    line-height: 16px;
+    width: 280px;
+    height: 145px;
+    background-color: white;
+    opacity: .9;
+}
+
+.anomalyData {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 160;
+    line-height: 16px;
+    width: 22%;
+    height: 22%;
+
+}
+
+.reload {
+    position: absolute;
+    bottom: 130px;
+    right: 29px;
+    z-index: 160;
+}
+
+.amap-logo {
+    display: none;
+}
+
+.amap-copyright {
+    display: none;
+    font-size: 0;
+}
+
+.amap-mcode {
+    display: none;
+    font-size: 0px;
+}
+
+.amap-info-sharp {
+    display: none;
+}
+
+.amap-menu-outer, .amap-menu-outer {
+    border-radius: 20px;
+}
+
+.amap-marker-label {
+    font-size: 13px;
+    border: 1px solid orange;
+    background: #fff;
+    border-radius: 10px 0 0 0;
+    color: #690441;
+    opacity: .8;
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!--common-js-->
+    <script th:replace="common/js"></script>
+    <meta th:replace="common/meta">
+    <link th:replace="common/css">
+    <link th:replace="${_pagePath} :: head">
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini" th:data-server-time="${#dates.createNow().getTime()}">
+<div class="wrapper">
+    <!--header-->
+    <div th:replace="common/pages/header"></div>
+    <!--sidebar-->
+    <div th:replace="common/pages/sidebar"></div>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <section class="content">
+            <!-- content START -->
+            <div th:replace="${_pagePath} :: content"></div>
+            <!-- content END -->
+        </section>
+        <!--&lt;!&ndash; /.content &ndash;&gt;-->
+    </div>
+</div>
+<!-- ./wrapper -->
+
+
+<script type="text/javascript">
+    /*var $menu = $("[data-menu = 'true']");
+    var $parentId = $menu.data("parentid");
+    $menu.addClass("active");
+    parentMenu($parentId);
+    function parentMenu(currentId){
+        if (currentId != null || currentId != 0) {
+            var $currentId = $("#menu" + currentId);
+            $currentId.addClass("active");
+            var $parentId = $currentId.data("parentId");
+            parentMenu($parentId);
+        }
+    }*/
+</script>
+<script th:replace="${_pagePath} :: script"></script>
+</body>
+</html>

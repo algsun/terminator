@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.microwise.terminator.sys.mapper.DeviceMapper">
+    <resultMap id="BaseResultMap" type="com.microwise.terminator.sys.entity.Device">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="nodeid" jdbcType="VARCHAR" property="nodeid" />
+        <result column="nodeVersion" jdbcType="INTEGER" property="nodeversion" />
+        <result column="isControl" jdbcType="INTEGER" property="iscontrol" />
+        <result column="parentIP" jdbcType="INTEGER" property="parentip" />
+        <result column="childIP" jdbcType="INTEGER" property="childip" />
+        <result column="feedbackIP" jdbcType="INTEGER" property="feedbackip" />
+        <result column="sequence" jdbcType="INTEGER" property="sequence" />
+        <result column="stamp" jdbcType="TIMESTAMP" property="stamp" />
+        <result column="emptyStamp" jdbcType="TIMESTAMP" property="emptystamp" />
+        <result column="warmUp" jdbcType="INTEGER" property="warmup" />
+        <result column="interval_i" jdbcType="INTEGER" property="intervalI" />
+        <result column="rssi" jdbcType="INTEGER" property="rssi" />
+        <result column="lqi" jdbcType="INTEGER" property="lqi" />
+        <result column="lowvoltage" jdbcType="REAL" property="lowvoltage" />
+        <result column="anomaly" jdbcType="INTEGER" property="anomaly" />
+        <result column="deviceMode" jdbcType="INTEGER" property="devicemode" />
+        <result column="remoteIp" jdbcType="VARCHAR" property="remoteip" />
+        <result column="remotePort" jdbcType="INTEGER" property="remoteport" />
+        <result column="sdCardState" jdbcType="INTEGER" property="sdcardstate" />
+        <result column="dataVersion" jdbcType="BIGINT" property="dataversion" />
+        <result column="isThresholdAlarm" jdbcType="INTEGER" property="isthresholdalarm" />
+        <result column="demarcate" jdbcType="INTEGER" property="demarcate" />
+        <result column="sensitivity" jdbcType="INTEGER" property="sensitivity" />
+    </resultMap>
+    <!-- 获取设备详细信息 -->
+    <select id="findDeviceById" parameterType="string"
+            resultType="Device">
+        <![CDATA[
+			SELECT
+				n.nodeid		as nodeId,
+				n.nodeType		as nodeType,
+				n.deviceImage	as deviceImage,
+				n.siteId        as siteId,
+				n.sn            as sn,
+				m.rssi			as rssi,
+				m.lqi			as lqi,
+				m.stamp			as stamp,
+				m.lowvoltage	as lowvoltage,
+				m.anomaly		as anomaly,
+				m.deviceMode	as deviceMode,
+				m.interval_i 	as `interval`,
+				m.isControl		as `notControl`,
+				m.parentIP      as parentIP,
+				m.childIP       as currentIP,
+                m.nodeVersion   as nodeVersion,
+                n.isHumCompensate as humCompensate,
+                n.voltageThreshold as voltageThreshold,
+                m.demarcate,
+                n.sn,
+                m.warmUp
+			FROM
+				m_nodeinfo AS n
+			LEFT JOIN
+				m_nodeinfomemory AS m ON n.nodeid = m.nodeid
+			WHERE
+				n.nodeid = #{id}
+        ]]>
+    </select>
+    <!--修改设备时间间隔-->
+    <update id="updateIntervalByNodeId">
+        UPDATE
+        m_nodeinfomemory
+        SET
+        interval_i = #{interval}
+        WHERE
+        nodeid = #{nodeid}
+    </update>
+    <!--修改振动灵敏度-->
+    <update id="updateSensitivityByNodeId">
+        UPDATE
+        m_nodeinfomemory
+        SET
+        sensitivity = #{sensitivity}
+        WHERE
+        nodeid = #{nodeid}
+    </update>
+    <!--解除设备与位置点的绑定-->
+    <update id="unBindLocation">
+        UPDATE
+        m_location
+        SET
+        nodeId = NULL
+        WHERE
+        nodeId = #{nodeid}
+    </update>
+    <!--删除设备状态数据-->
+    <delete id="deleteNodeInfoMemoryByNodeId">
+        DELETE FROM
+        m_nodeinfomemory
+        WHERE
+        nodeid = #{nodeid}
+    </delete>
+    <!--删除设备实时数据-->
+    <delete id="deleteNodeSensorByNodeId">
+        DELETE FROM
+        m_nodesensor
+        WHERE
+        nodeid = #{nodeid}
+    </delete>
+</mapper>

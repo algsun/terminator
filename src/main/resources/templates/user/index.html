@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>系统设置-用户管理</title>
+    <link th:href="@{/assets/pnotify/1.2.0/jquery.pnotify.default.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/assets/pnotify/1.2.0/custom.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+<section th:fragment="content">
+    <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="box table-responsive">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a th:href="@{/sys/users}">用户列表</a></li>
+                <li><a shiro:hasPermission="sys:user:edit" th:href="@{/sys/users/new}">用户添加</a></li>
+            </ul>
+        </div>
+        <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+            <div class="box-body">
+                <table class="table table-hover table-condensed table-striped table-bordered">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>姓名</th>
+                        <th>登录名</th>
+                        <th>归属机构</th>
+                        <th>手机</th>
+                        <th>邮箱</th>
+                        <th><span shiro:hasPermission="sys:user:edit">操作</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user:${pageInfo.list}">
+                        <td th:text="${userStat.count}"></td>
+                        <td th:text="${user.name}">暂无数据</td>
+                        <td th:text="${user.loginName}">暂无数据</td>
+                        <td th:text="${user.office == null}?'':${user.office.officeName}"></td>
+                        <td th:text="${user.mobile}">暂无数据</td>
+                        <td th:text="${user.email}">暂无数据</td>
+                        <td>
+                            <a shiro:hasPermission="sys:user:edit" class="btn btn-warning btn-xs"
+                               th:href="@{/sys/users/edit(id=${user.id})}">修改
+                                <span class="glyphicon glyphicon-edit"></span>
+                            </a>
+                            <a shiro:hasPermission="sys:user:edit" class="btn btn-danger btn-xs btn-del" th:id="${user.id}" th:if="!${#strings.equals(user.id,1) || #strings.equals(user.id,currentUser.id)}">删除
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="box-footer clearfix">
+                <ul class="pagination pagination-sm no-margin pull-right" >
+                    <li th:class="${pageInfo.isFirstPage}?'disabled'">
+                        <a th:href="@{/sys/users(pageNum=${pageInfo.prePage},pageSize=${pageInfo.pageSize})}"
+                           aria-label="Previous" th:onclick="${pageInfo.isFirstPage}?'return false'">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li th:class="${navigatepageNum==pageInfo.pageNum}?'active'" th:each="navigatepageNum : ${pageInfo.navigatepageNums}" >
+                        <a th:href="@{/sys/users(pageNum=${navigatepageNum},pageSize=${pageInfo.pageSize})}" th:text="${navigatepageNum}"></a>
+                    </li>
+                    <li th:class="${pageInfo.isLastPage}?'disabled'">
+                        <a th:href="@{/sys/users(pageNum=${pageInfo.nextPage},pageSize=${pageInfo.pageSize})}"
+                           aria-label="Next" th:onclick="${pageInfo.isLastPage}?'return false'">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(pageInfo.list)}">
+            <h2 style="margin: 30px">暂无数据</h2>
+        </div>
+    </div>
+    <div th:include="deleteModel :: deleteModel"></div>
+</section>
+
+<div th:fragment="script">
+    <script type="text/javascript" th:src="@{/assets/pnotify/1.2.0/jquery.pnotify.min.js}"></script>
+    <script type="text/javascript" th:src="@{/common/pnotify.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        $(function () {
+//            删除提示信息
+            var userId;
+            var $this;
+            $(".btn-del").click(function () {
+                $this = $(this);
+                userId = $this.attr("id");
+                $("#myModal").modal("toggle");
+            });
+            $('#okBtn').click(function () {
+                $("#myModal").modal("toggle");
+                window.location.href=[[@{/sys/users/delete}]]+"?id="+userId;
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

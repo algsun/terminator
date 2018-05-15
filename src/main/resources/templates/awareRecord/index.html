@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <title>知晓记录</title>
+</head>
+<body>
+<section th:fragment="content">
+    <div class="box" style="border-top: 0px">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="pull-left header"><i class="fa fa-th"></i>知晓记录</li>
+            </ul>
+            <div class="box-body">
+                <form class="form-inline" style="padding-left: 20px;padding-bottom: 20px"
+                      th:action="@{/analysis/awareRecords}"
+                      id="awareRecordForm"
+                      method="get">
+                    <div class="form-group">
+                        <label for="relicName">文物:</label>
+                        <input type="text" class="form-control" id="relicName" name="relicName"
+                               placeholder="文物名称"
+                               th:value="${relicName}">
+                    </div>
+                    <div class="form-group" style="padding-left: 10px">
+                        <label for="user">知晓人:</label>
+                        <input type="text" class="form-control" id="user" name="user"
+                               placeholder="知晓人"
+                               th:value="${user}">
+                    </div>
+                    <div class="form-group has-feedback" style="padding-left: 10px">
+                        <label>日期范围:</label>
+                        <input type="text" readonly="readonly" maxlength="20" class="form-control" id="begin"
+                               name="begin"
+                               onclick="WdatePicker({dateFmt:'yyyy-MM-dd',isShowClear:false,maxDate:'%y-%M-%d'});"
+                               th:value="${#dates.format(begin,'yyyy-MM-dd')}" style="background-color: #fff">
+                        <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                    </div>
+                    <div class="form-group has-feedback">
+                        --
+                        <input type="text" readonly="readonly" maxlength="20" class="form-control" id="end"
+                               name="end"
+                               onclick="WdatePicker({dateFmt:'yyyy-MM-dd',isShowClear:false,minDate:'#F{$dp.$D(\'begin\')}',maxDate:'%y-%M-%d'});"
+                               th:value="${#dates.format(end,'yyyy-MM-dd')}" style="background-color: #fff">
+                        <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                    </div>
+                    <div class="form-group has-feedback" style="padding-left: 10px">
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn">查询</button>
+                    </div>
+                </form>
+                <div th:if="${#bools.isFalse(pageInfo == null) and #bools.isFalse(#lists.isEmpty(pageInfo.list))}">
+                    <table class="table table-hover table-condensed table-striped table-bordered">
+                        <thead>
+                        <th>#</th>
+                        <th>机构</th>
+                        <th>文物</th>
+                        <th>报警原因</th>
+                        <th>报警时间</th>
+                        <th>知晓时间</th>
+                        <th>知晓人</th>
+                        </thead>
+                        <tbody>
+                        <tr th:each="awareRecord:${pageInfo.list}">
+                            <td th:text="${awareRecordStat.count}"></td>
+                            <td th:text="${awareRecord.alarmRecord.office.officeName}"
+                                th:if="${#bools.isFalse(awareRecord.alarmRecord == null) and #bools.isFalse(awareRecord.alarmRecord.office == null)}"></td>
+                            <td th:if="${#bools.isTrue(awareRecord.alarmRecord == null) or #bools.isTrue(awareRecord.alarmRecord.office == null)}"></td>
+                            <td th:text="${awareRecord.alarmRecord.relic.name}"
+                                th:if="${#bools.isFalse(awareRecord.alarmRecord == null) and #bools.isFalse(awareRecord.alarmRecord.relic == null)}"></td>
+                            <td th:if="${#bools.isTrue(awareRecord.alarmRecord == null) and #bools.isTrue(awareRecord.alarmRecord.relic == null)}"></td>
+                            <td th:text="${awareRecord.alarmRecord != null}?${awareRecord.alarmRecord.factor}"></td>
+                            <td th:text="${awareRecord.alarmRecord != null}?${#dates.format(awareRecord.alarmRecord.alarmtime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${#dates.format(awareRecord.awareTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${awareRecord.awareUser != null}?${awareRecord.awareUser.name}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div th:if="${#bools.isFalse(pageInfo == null) and #bools.isFalse(#lists.isEmpty(pageInfo.list))}">
+                <div class="box-footer clearfix">
+                    <ul class="pagination pagination-sm no-margin pull-right">
+                        <li th:class="${pageInfo.isFirstPage}?'disabled'">
+                            <a aria-label="Previous" id="previous"
+                               th:onclick="${pageInfo.isFirstPage}?'return false'">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li th:class="${navigatepageNum==pageInfo.pageNum}?'active'"
+                            th:each="navigatepageNum : ${pageInfo.navigatepageNums}">
+                            <a th:data-id="${navigatepageNum}" th:value="${navigatepageNum}"
+                               th:text="${navigatepageNum}" class="navigatePage"></a>
+                        </li>
+                        <li th:class="${pageInfo.isLastPage}?'disabled'">
+                            <a aria-label="Next" id="next" th:onclick="${pageInfo.isLastPage}?'return false'">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div th:if="${#bools.isTrue(pageInfo == null) || #bools.isTrue(#lists.isEmpty(pageInfo.list))}"
+                 style="margin: 30px;padding-bottom: 30px">
+                <h3>暂无数据</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:fragment="script">
+    <script type="text/javascript" th:src="@{/My97DatePicker/WdatePicker.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        //知晓记录分页
+        $(function () {
+            var isFirstPage = [[${pageInfo.isFirstPage}]];
+            var isLastPage = [[${pageInfo.isLastPage}]];
+            var pageSize = [[${pageInfo.pageSize}]];
+            var relicName = $("#relicName").val();
+            var user = $("#user").val();
+            var begin = $("#begin").val();
+            var end = $("#end").val();
+            var uri = [[@{/analysis/awareRecords}]]+"?pageSize=" + pageSize + "&begin=" + begin + "&end=" + end;
+            if (relicName != null && relicName != "") {
+                uri = uri + "&relicName=" + relicName;
+            }
+            if (user != null && user != "") {
+                uri = uri + "&user=" + user;
+            }
+            $("#previous").click(function () {
+                var pageNum = [[${pageInfo.prePage}]];
+                if (isFirstPage == false) {
+                    var preUri = uri + "&pageNum=" + pageNum;
+                    window.location.href = preUri;
+                }
+            });
+            $(".navigatePage").click(function () {
+                var pageNum = $(this).data("id");
+                var navUri = uri + "&pageNum=" + pageNum;
+                window.location.href = navUri;
+            });
+            $("#next").click(function () {
+                var pageNum = [[${pageInfo.nextPage}]];
+                if (isLastPage == false) {
+                    var nextUri = uri + "&pageNum=" + pageNum;
+                    window.location.href = nextUri;
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

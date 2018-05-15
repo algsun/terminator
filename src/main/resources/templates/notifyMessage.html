@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--提示信息-->
+<div th:fragment="notifyMessage(success, message)">
+    <div th:if="${not #strings.isEmpty(success)}">
+        <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                    aria-hidden="true">&times;</span></button>
+            <strong th:text="${message}"></strong>
+        </div>
+    </div>
+</div>
+</html>

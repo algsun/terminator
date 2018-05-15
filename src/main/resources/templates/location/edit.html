@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>位置点管理</title>
+    <link th:href="@{assets/pnotify/1.2.0/jquery.pnotify.default.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{assets/pnotify/1.2.0/custom.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/webjars/select2/4.0.3/css/select2.min.css}" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<section th:fragment="content">
+    <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="box">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li><a th:href="@{/sys/locations}">位置点列表</a></li>
+                <li class="active"><a th:href="@{/sys/locations/edit}">位置点修改</a></li>
+            </ul>
+        </div>
+        <div class="box-body">
+            <form class="form-horizontal" th:object="${location}" method="post" th:action="@{/sys/locations/update}"
+                  id="locationForm">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <label for="locationname" class="col-sm-2 control-label">位置点名称<i
+                                    class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="locationname" placeholder="位置点名称"
+                                       th:field="*{locationname}" maxlength="50">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="nodeid" class="col-sm-2 control-label">设备名称</label>
+                            <div class="col-sm-10">
+                                <select id="nodeid" name="nodeid" class="form-control">
+                                    <option></option>
+                                    <OPTGROUP label="节点">
+                                        <option th:each="node:${nodeList}" th:if="${node.nodetype == 1}"
+                                                th:text="${node.nodeid}" th:value="${node.nodeid}"
+                                                th:selected="${location.nodeid == node.nodeid}?true"></option>
+                                    </OPTGROUP>
+                                    <OPTGROUP label="中继">
+                                        <option th:each="node:${nodeList}" th:if="${node.nodetype == 2}"
+                                                th:text="${node.nodeid}" th:value="${node.nodeid}"
+                                                th:selected="${location.nodeid == node.nodeid}?true"></option>
+                                    </OPTGROUP>
+                                    <OPTGROUP label="主模块">
+                                        <option th:each="node:${nodeList}" th:if="${node.nodetype == 3}"
+                                                th:text="${node.nodeid}" th:value="${node.nodeid}"
+                                                th:selected="${location.nodeid == node.nodeid}?true"></option>
+                                    </OPTGROUP>
+                                    <OPTGROUP label="控制模块">
+                                        <option th:each="node:${nodeList}" th:if="${node.nodetype == 5}"
+                                                th:text="${node.nodeid}" th:value="${node.nodeid}"
+                                                th:selected="${location.nodeid == node.nodeid}?true"></option>
+                                    </OPTGROUP>
+                                    <OPTGROUP label="网关">
+                                        <option th:each="node:${nodeList}" th:if="${node.nodetype == 7}"
+                                                th:text="${node.nodeid}" th:value="${node.nodeid}"
+                                                th:selected="${location.nodeid == node.nodeid}?true"></option>
+                                    </OPTGROUP>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="zoneid" class="col-sm-2 control-label">文物</label>
+                            <div class="col-sm-10">
+                                <select id="zoneid" name="zoneid" class="form-control">
+                                    <option></option>
+                                    <option th:each="relic:${relicList}" th:text="${relic.name}"
+                                            th:value="${relic.id}"
+                                            th:selected="${location.zoneid == relic.id}?true"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button type="submit" class="btn btn-primary btn-sm">保存</button>
+                                <a type="input" class="btn btn-sm btn-default" th:href="@{/sys/locations}">返回</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" th:value="${location.id}" id="locationId" name="id">
+            </form>
+        </div>
+    </div>
+</section>
+
+<div th:fragment="script">
+    <script th:src="@{/webjars/jquery-validation/1.17.0/jquery.validate.js}"></script>
+    <script th:src="@{/webjars/jquery-validation/1.17.0/additional-methods.js}"></script>
+    <script type="text/javascript" th:src="@{/assets/pnotify/1.2.0/jquery.pnotify.min.js}"></script>
+    <script type="text/javascript" th:src="@{/common/pnotify.js}"></script>
+    <script type="text/javascript" th:src="@{/common/validation.js}"></script>
+    <script th:src="@{/webjars/select2/4.0.3/js/select2.min.js}" type="text/javascript"></script>
+    <script th:src="@{/webjars/select2/4.0.3/js/i18n/zh-CN.js}" type="text/javascript"></script>
+    <script type="text/javascript" th:inline="javascript">
+        $(function () {
+            $("#locationForm").validate({
+                rules: {
+                    locationname: {
+                        required: true,
+                        remote: {
+                            url: "./exists",
+                            type: "post",
+                            data: {
+                                name: function () {
+                                    return $("#locationname").val();
+                                },
+                                id: function () {
+                                    return $("#locationId").val();
+                                }
+                            }
+                        }
+                    }
+                },
+                messages: {
+                    locationname: {
+                        required: "请输入位置点名称",
+                        remote: "位置点名称相同"
+                    }
+                }
+            });
+            $("#nodeid").select2({
+                placeholder: "请选择设备",
+                width: "180px",
+                allowClear: true,
+                language: "zh-CN"
+            });
+            $("#zoneid").select2({
+                placeholder: "请选择文物",
+                width: "300px",
+                allowClear: true,
+                language: "zh-CN"
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+.ztree * {
+    font-size: 12px;
+}
+
+/* 增大节点的间隔，默认为 0 */
+.ztree li {
+    margin: 1px 0;
+}

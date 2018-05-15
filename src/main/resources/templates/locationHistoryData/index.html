@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!--common-js-->
+    <script th:replace="common/js"></script>
+    <meta th:replace="common/meta">
+    <link th:replace="common/css">
+    <title>位置点历史数据</title>
+    <style>
+        .table th, .table td {
+            text-align: center
+        }
+    </style>
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini sidebar-collapse"
+      th:data-server-time="${#dates.createNow().getTime()}">
+<div class="wrapper">
+    <!--header-->
+    <header class="main-header">
+
+        <!-- Logo -->
+        <a th:href="@{/systems/2/switch}" class="logo">
+            <!--&lt;!&ndash; mini logo for sidebar mini 50x50 pixels &ndash;&gt;-->
+            <!--<span class="logo-mini"><b>A</b>LT</span>-->
+            <!--&lt;!&ndash; logo for regular state and mobile devices &ndash;&gt;-->
+            <!--<span class="logo-lg"><b>Admin</b>LTE</span>-->
+            <span>终结者</span>
+        </a>
+
+        <!-- Header Navbar: style can be found in header.less -->
+        <nav class="navbar navbar-static-top">
+            <ul class="nav navbar-nav">
+                <li th:each="system : ${session.menus}" th:if="${system.parentId} == 1"
+                    th:class="(${system.id} == ${session.currentSystem})?'active'">
+                    <a th:href="@{/systems/{systemId}/switch(systemId = ${system.id})}" th:text="${system.name}"></a>
+                </li>
+            </ul>
+
+            <!-- Navbar Right Menu -->
+            <div class="navbar-custom-menu">
+                <ul class="nav navbar-nav">
+                    <!-- User Account: style can be found in dropdown.less -->
+                    <li class="dropdown user user-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="hidden-xs"
+                                  th:text="${T(com.microwise.terminator.sys.util.UserUtils).getCurrentUser().getName()}">Alexander Pierce</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="user-footer">
+                                <div class="pull-left">
+                                    <a href="#" class="btn btn-default btn-flat">Profile</a>
+                                </div>
+                                <div class="pull-right">
+                                    <a th:href="@{/logout}" class="btn btn-default btn-flat">退出登录</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+
+        </nav>
+    </header>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <section class="content">
+            <!-- content START -->
+            <h3 th:if="${#lists.isEmpty(locations)}">文物暂无任何位置点</h3>
+            <div class="box" th:if="not ${#lists.isEmpty(locations)}">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="active"><a th:href="@{/locationHistoryData(relicId=${relicId})}">历史数据</a>
+                        </li>
+                        <li role="presentation"><a th:href="@{/locationRealtimeData(relicId=${relicId})}">实时数据</a></li>
+                    </ul>
+                </div>
+                <div class="box-body">
+                    <form class="form-inline well well-small" th:action="@{/locationHistoryData}"
+                          id="locationHistoryData">
+                        <input type="hidden" th:value="${relicId}" class="searchCondition" name="relicId">
+                        <div class="form-group">
+                            <label for="locationId">位置点</label>
+                            <select type="text" class="form-control searchCondition" id="locationId" name="locationId">
+                                <option th:each="location: ${locations}" th:object="${location}" th:value="*{id}"
+                                        th:text="*{locationname}" th:selected="*{id}==${locationId}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group has-feedback">
+                            <label for="beginTime">开始时间</label>
+                            <input class="form-control searchCondition" id="beginTime" name="beginTime"
+                                   onfocus="var endTime=$dp.$('end-time');
+                    WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',onpicked:function(){endTime.focus();},
+                    maxDate:'#F{$dp.$D(\'endTime\')}'})"
+                                   th:value="${#dates.format(beginTime,'yyyy-MM-dd HH:mm:ss')}" placeholder="开始时间"
+                                   readonly>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                        <div class="form-group has-feedback">
+                            <label for="endTime">结束时间</label>
+                            <input class="form-control searchCondition" id="endTime" type="text" name="endTime"
+                                   onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss', minDate:'#F{$dp.$D(\'beginTime\')}',
+                     maxDate:'%y-%M-{%d} 23:59:59'})"
+                                   th:value="${#dates.format(endTime,'yyyy-MM-dd HH:mm:ss')}" placeholder="结束时间"
+                                   readonly>
+                            <span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary">查询</button>
+                        <button id="exportButton" type="button" class="btn btn-default">导出</button>
+                    </form>
+                    <h3 th:if="${#lists.isEmpty(pageInfo.list)}">暂无数据</h3>
+                    <table class="table table-bordered table-striped table-hover table-center m-t-20"
+                           th:if="${ not #lists.isEmpty(pageInfo.list)}">
+                        <thead>
+                        <th>序号</th>
+                        <th>时间</th>
+                        <th>状态</th>
+                        <th th:each="sensorinfo :${sensorinfos}">
+                            <span th:text="${sensorinfo.cnName}"></span>
+                            <br>
+                            <span class="muted f-n" th:if="${sensorinfo.units}!=''" th:text="'('+${sensorinfo.units}+')'"></span>
+                        </th>
+                        </thead>
+                        <tbody>
+                        <tr th:each="historyData : ${pageInfo.list}" th:with="data = ${historyData.sensorInfoMap}">
+                            <td th:text="${historyDataStat.count}"></td>
+                            <td th:text="${#dates.format(historyData.stamp,'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:switch="${historyData.anomaly}">
+                <span th:case="-1" th:text="${historyData.lowvoltage}==-1?'超时':${historyData.lowvoltage}+'V'"
+                      class="label label-important"></span>
+                                <span th:case="0"
+                                      th:text="${historyData.lowvoltage}==-1?'正常':${historyData.lowvoltage}+'V'"
+                                      class="label label-success"></span>
+                                <span th:case="1"
+                                      th:text="${historyData.lowvoltage}==-1?'低电':${historyData.lowvoltage}+'V'"
+                                      class="label label-warning"></span>
+                                <span th:case="2"
+                                      th:text="${historyData.lowvoltage}==-1?'掉电':${historyData.lowvoltage}+'V'"
+                                      class="label label-warning"></span>
+                            </td>
+                            <td th:each="sensorinfo :${sensorinfos}">
+               <span th:if="${#maps.containsKey(data,sensorinfo.sensorphysicalid)}"
+                     th:with="deviceData = ${data[sensorinfo.sensorphysicalid]}">
+                   <span th:switch="${sensorinfo.showtype}">
+                        <span th:case="3">
+                            <span th:if="${deviceData.state}==0" th:text="--"></span>
+                           <span th:if="${deviceData.state}!=0">
+                               <span th:text="${deviceData.sensorPhysicalValue}"></span>
+                           </span>
+                       </span>
+                       <span th:case="*">
+                           <span th:if="${deviceData.state}==0" th:text="--"></span>
+                           <span th:if="${deviceData.state}!=0" th:text="${deviceData.sensorPhysicalValue}"></span>
+                       </span>
+                   </span>
+               </span>
+
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页-->
+                <div th:replace="navigation :: navigation(${pageInfo})">
+
+                </div>
+            </div>
+            <!-- content END -->
+        </section>
+        <!--&lt;!&ndash; /.content &ndash;&gt;-->
+    </div>
+</div>
+<!-- ./wrapper -->
+
+
+<script type="text/javascript" th:src="@{/My97DatePicker/WdatePicker.js}"></script>
+<script type="text/javascript">
+    $(function () {
+        $("#exportButton").click(function () {
+            var params = $("#locationHistoryData").serialize();
+            var url = "viewExport?" + params;
+            // 打开等待页面
+            window.open(url, "blank", "height=400, width=400");
+        });
+    });
+</script>
+</body>
+</html>

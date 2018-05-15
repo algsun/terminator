@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>设备详情</title>
+    <link th:href="@{/common/css/base.css}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        .p-t-7 {
+            padding-top: 7px;
+        }
+    </style>
+</head>
+<body>
+<section th:fragment="content">
+    <div class="box">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#">设备详情</a></li>
+            </ul>
+        </div>
+        <div class="box-body">
+            <div class="form-horizontal">
+                <div class="form-group" th:if="${device.location != null}">
+                    <label class="col-sm-2 control-label">位置点</label>
+                    <div class="p-t-7">
+                        <a th:href="@{/sys/locations(locationId=${device.location.id})}"
+                           th:text="${device.location.locationname}"></a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">节点ID</label>
+                    <div class="p-t-7">
+                        <strong><span th:text="${device.nodeid}"></span></strong>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">设备类型</label>
+                    <div th:switch="${device.nodetype}">
+                        <div class="p-t-7">
+                            <span th:case="1"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<span
+                                    th:text="节点"></span></span>
+                            <span th:case="2"><i class="mw-icon-repeator"></i>&nbsp;&nbsp;<span
+                                    th:text="中继"></span></span>
+                            <span th:case="3"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<span
+                                    th:text="主模块"></span></span>
+                            <span th:case="5"><i class="mw-icon-control-module"></i>&nbsp;&nbsp;<span
+                                    th:text="控制模块"></span>
+                            </span>
+                            <span th:case="7"><i class="mw-icon-gateway"></i>&nbsp;&nbsp;<span
+                                    th:text="网关"></span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">产品序列号</label>
+                    <div class="p-t-7">
+                        <span th:text="${#strings.isEmpty(device.sn)?'无':device.sn}"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">状态</label>
+                    <div th:switch="${device.anomaly}">
+                        <div class="p-t-7">
+                            <span th:case="-1" th:text="超时" class="label label-danger"></span>
+                            <span th:case="0" th:text="正常" class="label label-success"></span>
+                            <span th:case="1" th:text="低电压" class="label label-warning"></span>
+                            <span th:case="2" th:text="掉电" class="label label-warning"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">rssi</label>
+                    <div class="p-t-7">
+                        <i th:class="mw-icon-wifi"></i><span th:text="${device.rssi}"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">lqi</label>
+                    <div class="p-t-7">
+                        <i th:class="mw-icon-connect"></i><span th:text="${device.lqi}"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">最后状态时间</label>
+                    <div class="p-t-7">
+                        <span th:text="${#dates.format(device.stamp,'yyyy-MM-dd HH:mm:ss')}"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">是否可控</label>
+                    <div th:switch="${device.isControl}">
+                        <div class="p-t-7">
+                            <span th:case="0" th:text="是"></span>
+                            <span th:case="1" th:text="否"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">工作周期</label>
+                    <div class="p-t-7">
+                        <div th:if="${device.interval_i < 60}">
+                            <span th:text="${device.interval_i}"></span>&nbsp;秒
+                        </div>
+                        <div th:if="${device.interval_i >= 60 && device.interval_i < 3600}">
+                            <span th:text="${device.interval_i/60}"></span>&nbsp;分钟
+                        </div>
+                        <div th:if="${3600 <= device.interval_i}">
+                            <span th:text="${device.interval_i/3600}"></span>&nbsp;小时
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label"><span style="padding-right: 1px"></span></label>
+                    <div class="p-t-7">
+                        <a class="btn btn-primary" th:href="@{/sys/devices}" role="button">返回</a>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${device==null}" style="margin: 30px;padding-bottom: 30px">
+                <h3>暂无数据</h3>
+            </div>
+        </div>
+    </div>
+</section>
+<div th:fragment="script"></div>
+</body>
+</html>

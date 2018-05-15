@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>设备列表</title>
+    <link th:href="@{/common/css/base.css}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        .p-t-7 {
+            padding-top: 7px;
+        }
+
+        .p-l-0 {
+            padding-left: 0px;
+        }
+    </style>
+</head>
+<body>
+<section th:fragment="content">
+    <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="box">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a th:href="@{/sys/devices/edit}">设备修改</a></li>
+            </ul>
+        </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-7">
+                    <form class="form-horizontal" th:action="@{/sys/devices/update}" method="post" id="device-detail">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">设备ID</label>
+                            <div class="p-t-7">
+                                <span th:text="${device.nodeid}"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">设备类型</label>
+                            <div th:switch="${device.nodetype}">
+                                <div class="p-t-7">
+                            <span th:case="1"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<span
+                                    th:text="节点"></span></span>
+                                    <span th:case="2"><i class="mw-icon-repeator"></i>&nbsp;&nbsp;<span
+                                            th:text="中继"></span></span>
+                                    <span th:case="3"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<span
+                                            th:text="主模块"></span></span>
+                                    <span th:case="5"><i class="mw-icon-control-module"></i>&nbsp;&nbsp;<span
+                                            th:text="控制模块"></span>
+                            </span>
+                                    <span th:case="7"><i class="mw-icon-gateway"></i>&nbsp;&nbsp;<span
+                                            th:text="网关"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">电压阈值</label>
+                            <div class="col-sm-10 p-l-0">
+                                <input type="text" class="form-control" placeholder="3.5"
+                                       th:value="${device.voltagethreshold == null}?3.5:${device.voltagethreshold}"
+                                       name="voltagethreshold" id="voltagethreshold">
+                                <span style="color:#969696;">（单位：伏，范围：大于0，默认为3.5）</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">预热时间</label>
+                            <div class="p-t-7">
+                                <span th:text="${device.warmUp}"></span>
+                                <span style="color:#969696;">（单位：秒）</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">工作周期</label>
+                            <div class="col-sm-10 p-l-0">
+                                <select class="form-control" name="interval_i" id="interval_i"
+                                        th:disabled="${device.isControl == 1}?'disabled'">
+                                    <option value="6" th:selected="${device.interval_i == 6}? true">6秒</option>
+                                    <option value="30" th:selected="${device.interval_i == 30}? true">30秒</option>
+                                    <option value="60" th:selected="${device.interval_i == 60}? true">1分钟</option>
+                                    <option value="120" th:selected="${device.interval_i == 120}? true">2分钟</option>
+                                    <option value="300" th:selected="${device.interval_i == 300}? true">5分钟</option>
+                                    <option value="600" th:selected="${device.interval_i == 600}? true">10分钟</option>
+                                    <option value="900" th:selected="${device.interval_i == 900}? true">15分钟</option>
+                                    <option value="1200" th:selected="${device.interval_i == 1200}? true">20分钟</option>
+                                    <option value="1800" th:selected="${device.interval_i == 1800}? true">30分钟</option>
+                                    <option value="3600" th:selected="${device.interval_i == 3600}? true">1小时</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button type="submit" class="btn btn-primary btn-sm">保存</button>
+                                <a type="input" class="btn btn-sm btn-default"
+                                   th:href="@{/sys/devices}">返回</a>
+                            </div>
+                        </div>
+                        <input type="hidden" th:value="${device.nodeid}" name="nodeid">
+                        <input id="intervalChange" name="isIntervalChange" type="hidden" value="false">
+                        <input id="sensitivityChange" name="isSensitivityChange" type="hidden" value="false">
+                    </form>
+                </div>
+                <div class="col-md-5" style="padding-left: 20px" th:if="${device.hasShake == true}">
+                    <div class="row">
+                        <div class="col-md-5" style="padding-top: 6px">灵敏度（振动）</div>
+                        <div class="col-md-7">
+                            <a th:class="${device.sensitivity == 1}?'btn btn-primary':'btn btn-default'"
+                               th:href="@{/sys/devices/modifySensitivity(nodeid=${device.nodeid},sensitivity=1)}"
+                               role="button">高</a>
+                            <a th:class="${device.sensitivity == 2}?'btn btn-primary':'btn btn-default'"
+                               th:href="@{/sys/devices/modifySensitivity(nodeid=${device.nodeid},sensitivity=2)}"
+                               role="button">中</a>
+                            <a th:class="${device.sensitivity == 3}?'btn btn-primary':'btn btn-default'"
+                               th:href="@{/sys/devices/modifySensitivity(nodeid=${device.nodeid},sensitivity=3)}"
+                               role="button">低</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div th:fragment="script">
+    <script type="text/javascript" th:src="@{/webjars/jquery-validation/1.17.0/jquery.validate.min.js}"></script>
+    <script type="text/javascript" th:src="@{/common/validation.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        $(function () {
+            $("#interval_i").change(function () {
+                $("#intervalChange").val(true);
+            });
+            $("#sensitivity").change(function () {
+                $("#sensitivityChange").val(true);
+            });
+            $("#device-detail").validate({
+                rules: {
+                    voltagethreshold: {
+                        number: true,
+                        min: 0
+                    }
+                },
+                messages: {
+                    voltagethreshold: {
+                        number: "电压阈值必须为数字",
+                        min: "电压阈值必须大于0"
+                    }
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

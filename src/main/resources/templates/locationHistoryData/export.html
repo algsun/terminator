@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <script th:replace="common/js"></script>
+    <link th:replace="common/css">
+    <title>Title</title>
+</head>
+<body>
+    <section th:fragment="content">
+                    <div class="progress" th:if="${count}>0">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                            请稍等,正在下载。。。。
+                        </div>
+                    </div>
+
+                <div th:if="${count}==0">
+                    <h1>暂无数据</h1>
+                </div>
+    </section>
+    <div th:fragment="script">
+        <script type="text/javascript" th:inline="javascript">
+            var count = [[${count}]];
+            if(count>0) {
+                var locationId = [[${locationId}]];
+                var beginTime = [[${#dates.format(beginTime,'yyyy-MM-dd HH:mm:ss')}]];
+                var endTime = [[${#dates.format(endTime,'yyyy-MM-dd HH:mm:ss')}]];
+                var downloadUrl = "locationHistoryDataExport?locationId="+locationId+"&beginTime="+beginTime+"&endTime="+endTime;
+                location.href = downloadUrl;
+           }
+        </script>
+    </div>
+</body>
+</html>

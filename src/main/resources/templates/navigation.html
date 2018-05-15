@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="navigation(pageInfo)">
+    <div class="box-footer clearfix" th:if="not ${#lists.isEmpty(pageInfo.list)}">
+        <div th:with="href=${session.currentMenu.href}"></div>
+        <ul class="pagination pagination-sm no-margin pull-right">
+            <li th:class="${pageInfo.isFirstPage}?'disabled'"><a id="previous"
+                    th:onclick="${pageInfo.isFirstPage}?'return false'"
+                    th:href="@{${href}(pageNumber=${pageInfo.prePage},pageSize=${pageInfo.pageSize})}"
+                    aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+            <li th:each="navigatepageNum : ${pageInfo.navigatepageNums}"
+                th:class="${navigatepageNum==pageInfo.pageNum}?'active'">
+                <a class="pageNumber" th:href="@{${href}(pageNumber=${navigatepageNum},pageSize=${pageInfo.pageSize})}"
+                   th:text="${navigatepageNum}"></a></li>
+            <li th:class="${pageInfo.isLastPage}?'disabled'"><a id="next"
+                    th:onclick="${pageInfo.isLastPage}?'return false'"
+                    th:href="@{${href}(pageNumber=${pageInfo.nextPage},pageSize=${pageInfo.pageSize})}"
+                    aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+        </ul>
+    </div>
+    <script type="text/javascript" >
+        $(function () {
+                $(".searchCondition").each(function () {
+                    var name = $(this).attr("name");
+                    var value = $(this).val();
+                    var param = "&"+name+"="+value;
+                    $("#previous").attr("href", $("#previous").attr("href")+param);
+                    //$(".pageNumber").attr("href", $(".pageNumber").attr("href")+param);
+                    $(".pageNumber").each(function () {
+                        $(this).attr("href", $(this).attr("href")+param);
+                    });
+                    $("#next").attr("href", $("#next").attr("href")+param);
+                });
+        });
+    </script>
+</div>
+</html>

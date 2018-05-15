@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.microwise.terminator.sys.mapper.NodeInfoMapper">
+    <resultMap id="BaseResultMap" type="com.microwise.terminator.sys.entity.NodeInfo">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="nodeid" jdbcType="VARCHAR" property="nodeid" />
+        <result column="nodeType" jdbcType="INTEGER" property="nodetype" />
+        <result column="createTime" jdbcType="TIMESTAMP" property="createtime" />
+        <result column="X" jdbcType="INTEGER" property="x" />
+        <result column="Y" jdbcType="INTEGER" property="y" />
+        <result column="Z" jdbcType="INTEGER" property="z" />
+        <result column="siteId" jdbcType="VARCHAR" property="siteid" />
+        <result column="deviceImage" jdbcType="VARCHAR" property="deviceimage" />
+        <result column="dataVersion" jdbcType="BIGINT" property="dataversion" />
+        <result column="binding" jdbcType="INTEGER" property="binding" />
+        <result column="isActive" jdbcType="INTEGER" property="isactive" />
+        <result column="sn" jdbcType="VARCHAR" property="sn" />
+        <result column="uploadState" jdbcType="INTEGER" property="uploadstate" />
+        <result column="isHumCompensate" jdbcType="INTEGER" property="ishumcompensate" />
+        <result column="isHumdityDevice" jdbcType="INTEGER" property="ishumditydevice" />
+        <result column="voltageThreshold" jdbcType="REAL" property="voltagethreshold" />
+    </resultMap>
+    <!-- 查询所有设备 -->
+    <select id="findDeviceList" parameterType="com.microwise.terminator.sys.entity.NodeInfo"
+            resultType="com.microwise.terminator.sys.entity.Device">
+        <![CDATA[
+			SELECT
+			    n.nodeid		AS nodeid,
+			    n.nodeType		AS nodetype,
+			    n.sn            AS sn,
+			    n.voltageThreshold AS voltagethreshold,
+			    n.siteId        As siteid,
+			    m.anomaly		AS anomaly,
+			    m.rssi			AS rssi,
+			    m.lqi			AS lqi,
+			    m.stamp         AS stamp,
+			    m.interval_i    AS interval_i,
+			    m.isControl     AS isControl,
+			    m.childIP       AS childIP,
+			    m.warmUp        AS warmUp,
+			    m.sensitivity   AS sensitivity
+			FROM
+				m_nodeinfo	AS n
+			INNER JOIN
+				m_nodeinfomemory AS m ON m.nodeid = n.nodeid
+			WHERE
+				1=1
+		]]>
+        AND
+        n.nodeType NOT IN(4)
+        <if test="nodeid !=null and nodeid != ''">
+            AND
+            n.nodeid LIKE '%${nodeid}%'
+        </if>
+        <if test="nodetype ==2 || nodetype ==3 || nodetype ==5 || nodetype ==7">
+            AND
+            n.nodeType = #{nodetype}
+        </if>
+        <if test="nodetype ==1">
+            AND
+            n.nodeType IN(1,3)
+        </if>
+        <if test="normalFlag == 1">
+            AND
+            m.anomaly != 0
+        </if>
+        <if test="normalFlag == 0">
+            AND
+            m.anomaly = 0
+        </if>
+        <if test="siteid != null and siteid != ''">
+            AND
+            n.siteId = #{siteid}
+        </if>
+        ORDER BY m.stamp DESC
+    </select>
+
+
+    <!-- 查询所有设备 -->
+    <select id="findAbnormalDevices" parameterType="com.microwise.terminator.sys.entity.NodeInfo"
+            resultType="com.microwise.terminator.sys.entity.Device">
+        <![CDATA[
+			SELECT
+			    n.nodeid		AS nodeid,
+			    n.nodeType		AS nodetype,
+			    n.sn            AS sn,
+			    n.voltageThreshold AS voltagethreshold,
+			    n.siteId        As siteid,
+			    m.anomaly		AS anomaly,
+			    m.rssi			AS rssi,
+			    m.lqi			AS lqi,
+			    m.stamp         AS stamp,
+			    m.interval_i    AS interval_i,
+			    m.isControl     AS isControl,
+			    m.childIP       AS childIP,
+			    m.warmUp        AS warmUp,
+			    m.sensitivity   AS sensitivity
+			FROM
+				m_nodeinfo	AS n
+			INNER JOIN
+				m_nodeinfomemory AS m ON m.nodeid = n.nodeid
+			WHERE
+				m.anomaly != 0
+            ORDER BY m.stamp DESC
+		]]>
+    </select>
+
+    <!--查询所有未绑定位置点的设备-->
+    <select id="findUnbindDevices" resultType="NodeInfo">
+        SELECT
+            n.nodeid AS nodeid,
+            n.nodeType AS nodetype
+        FROM
+            m_nodeinfo n
+        LEFT JOIN m_location l
+        ON n.`nodeid` = l.`nodeId`
+        WHERE l.`nodeId` IS NULL
+    </select>
+</mapper>

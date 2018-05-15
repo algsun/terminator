@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>概览</title>
+    <script th:replace="common/js"></script>
+    <meta th:replace="common/meta">
+    <link th:replace="common/css">
+    <link th:href="@{/css/mapOverview.css}" rel="stylesheet" type="text/css"/>
+    <style type="text/css">
+
+        .navgation {
+            position: absolute;
+            background-color: #222d32;
+            top: 0;
+            left: 0;
+            padding-top: 50px;
+            height: 100%;
+            width: 230px;
+            z-index: 810;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            z-index: 160;
+            line-height: 16px;
+            width: 440px;
+            height: 90px;
+            background-color: white;
+            opacity: .9;
+        }
+
+        .menu {
+            display: block;
+            background-color: #2c3b41;
+        }
+
+        .item {
+            padding: 12px 5px 12px 12px;
+        }
+
+        a:link {
+            color: #b8c7ce
+        }
+
+        a:visited {
+            color: #b8c7ce
+        }
+
+        a:hover {
+            color: #fff
+        }
+
+        a:active {
+            color: #fff
+        }
+    </style>
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+    <div th:replace="common/pages/header"></div>
+    <div class="navgation">
+        <div style="background-color: #2c3b41">
+            <form th:action="@{/sys/overviews/monitor-data}" method="get" class="sidebar-form"
+                  style="margin: 0px;padding: 10px;border: 0px">
+                <div class="input-group">
+                    <input type="text" name="name" id="name" class="form-control" placeholder="文物名称" th:value="${name}">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-flat">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="menu">
+            <div th:each="relic:${relics}" class="item">
+                <div class="row">
+                    <div class="col-md-7">
+                        <a th:href="@{/sys/overviews/monitor-data(relicId=${relic.id})}"
+                           th:style="${relic.id == relicId}?'color: #fff'">
+                            <i class="fa fa-fw fa-institution"></i>
+                            <span th:text="${relic.name}"></span>
+                        </a>
+                    </div>
+                    <div class="col-md-5">
+                        <span class="pull-right-container">
+                            <small class="label bg-yellow" th:text="${relic.count.deviceCount}"
+                                   th:if="${#bools.isTrue(relic.count != null)}"></small>
+                            <small class="label bg-green" style="margin-left: 5px"
+                                   th:text="${relic.count.alarmCount}"
+                                   th:if="${#bools.isTrue(relic.count != null)}"></small>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="background-color: #2c3b41;padding-bottom: 30px;padding-top: 20px;padding-left: 10px"
+             th:if="${relics != null}">
+            <span class="label label-warning">&nbsp;&nbsp;</span>:<span style="color: #fff;font-size: 8px">异常设备总数</span>
+            <span class="label label-success">&nbsp;&nbsp;</span>:<span
+                style="color: #fff;font-size: 8px">未处理报警总数</span>
+        </div>
+    </div>
+    <div id="content">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="box" style="border-top: 0px">
+                    <div class="box-header with-border">
+                        <a style="color: #333" th:href="@{/sys/overviews}">
+                            <span class="glyphicon glyphicon-chevron-left back" style="margin: 0px"></span>
+                            <h3 class="box-title back" style="font-weight: bold" th:text="${relic.name}"
+                                th:each="relic:${relics}" th:if="${relic.id == relicId}"></h3>
+                            <h3 class="box-title back" style="font-weight: bold" th:if="${relics == null}">暂无文物</h3>
+                        </a>
+                    </div>
+                    <div id="container" style="min-height: 60%">
+                        <div class="reload"><a class="glyphicon glyphicon-refresh" style="cursor: pointer"
+                                               id="reload"></a>
+                        </div>
+                        <div class="legend">
+                            <table class="table">
+                                <tr>
+                                    <td class="text-center" colspan="4">图例</td>
+                                </tr>
+                                <tr>
+                                    <td class="small text-center" id="test"><img src="../../image/1.2/relic-normal.png"
+                                                                                 height="80%" width="80%"></td>
+                                    <td>文物正常</td>
+                                    <td class="small text-center"><img src="../../image/1.2/relic-exception.png" height="80%" width="80%"></td>
+                                    <td>文物异常</td>
+                                    <td class="small text-center"><img src="../../image/1.2/device-exception.png" height="80%" width="80%"></td>
+                                    <td>设备异常</td>
+                                </tr>
+                                <!--<tr>-->
+                                    <!--<td class="small text-center"><img src="../../image/1.2/device-exception.png" height="80%" width="80%"></td>-->
+                                    <!--<td>设备异常</td>-->
+                                <!--</tr>-->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="box" style="border-top: 0px" th:each="relic:${relics}"
+                     th:if="${#bools.isTrue(relic.id == relicId) && #bools.isFalse(#lists.isEmpty(relic.alarmRecordList))}">
+                    <div class="nav-tabs-custom">
+                        <ul class="nav nav-tabs">
+                            <li class="pull-left header"><i class="fa fa-th">报警详情</i></li>
+                            <li class="active"><a href="#pending" data-toggle="tab">待处理</a></li>
+                            <li><a href="#processed" data-toggle="tab">已处理</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="pending">
+                                <div class="box-body">
+                                    <div style="height: 180px;overflow: auto">
+                                        <table class="table table-hover table-condensed table-striped table-bordered">
+                                            <thead>
+                                            <th>机构</th>
+                                            <th>文物</th>
+                                            <th>报警原因</th>
+                                            <th>报警时间</th>
+                                            <th>通知人</th>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="alarmRecordPending:${relic.alarmRecordList}"
+                                                th:if="${#bools.isTrue(alarmRecordPending.state == 0)}">
+                                                <td th:text="${alarmRecordPending.office != null}?${alarmRecordPending.office.officeName}"></td>
+                                                <td th:text="${alarmRecordPending.relic != null}?${alarmRecordPending.relic.name}"></td>
+                                                <td th:text="${alarmRecordPending.factor}"></td>
+                                                <td th:text="${#dates.format(alarmRecordPending.alarmtime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                                                <td><span th:each="notifier:${alarmRecordPending.notifiers}"
+                                                          th:text="${notifier != null}?${notifier.name}+' '"></span>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div style="margin: 30px;padding-bottom: 30px"
+                                         th:if="${#bools.isTrue(#lists.isEmpty(relic.alarmRecordList))}">
+                                        <h3>暂无数据</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="processed">
+                                <div class="box-body">
+                                    <div th:each="relic:${relics}" th:if="${relic.id == relicId}"
+                                         style="height: 180px;overflow: auto">
+                                        <div th:if="${#bools.isFalse(#lists.isEmpty(relic.alarmRecordList)) && #bools.isFalse(#lists.size(relic.alarmRecordList) == relic.count.alarmCount)}">
+                                            <table class="table table-hover table-condensed table-striped table-bordered">
+                                                <thead>
+                                                <th>机构</th>
+                                                <th>文物</th>
+                                                <th>报警原因</th>
+                                                <th>报警时间</th>
+                                                <th>通知人</th>
+                                                <th>处理人</th>
+                                                <th>处理措施</th>
+                                                <th>处理时间</th>
+                                                </thead>
+                                                <tbody>
+                                                <tr th:each="alarmRecord:${relic.alarmRecordList}"
+                                                    th:if="${#bools.isTrue(alarmRecord.state == 1)}">
+                                                    <td th:text="${alarmRecord.office != null}?${alarmRecord.office.officeName}"></td>
+                                                    <td th:text="${alarmRecord.relic != null}?${alarmRecord.relic.name}"></td>
+                                                    <td th:text="${alarmRecord.factor}"></td>
+                                                    <td th:text="${#dates.format(alarmRecord.alarmtime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                                                    <td><span th:each="notifier:${alarmRecord.notifiers}"
+                                                              th:text="${notifier != null}?${notifier.name}+' '"></span>
+                                                    </td>
+                                                    <td th:text="${alarmRecord.user != null}?${alarmRecord.user.name}"></td>
+                                                    <td th:text="${alarmRecord.handlemeasure}"></td>
+                                                    <td th:text="${#dates.format(alarmRecord.handletime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div style="margin: 30px;padding-bottom: 30px"
+                                             th:if="${#bools.isTrue(#lists.isEmpty(relic.alarmRecordList)) || #bools.isTrue(#lists.size(relic.alarmRecordList) == relic.count.alarmCount)}">
+                                            <h3>暂无数据</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="row" style="margin-bottom: 20px">
+                    <div class="col-md-10" style="font-size: 18px;font-weight:bold">
+                        实时状态
+                    </div>
+                    <div class="col-md-2">
+                        <a th:href="@{/locationHistoryData(relicId=${relicId})}">
+                            <span class="label label-info pull-right" style="padding: 5px 3px 5px 3px" id="data-detail">详细数据</span>
+                        </a>
+                    </div>
+                </div>
+                <div th:each="relic:${relics}" th:if="${relic.id == relicId}">
+                    <div class="info-box" th:each="device:${relic.deviceList}" th:if="${device.anomaly != 0}">
+                        <span class="info-box-icon bg-yellow" th:text="${#strings.substring(device.nodeid,8)}"
+                              style="font-size: 25px"></span>
+                        <div class="info-box-content" style="padding-top: 20px">
+                            <span class="info-box-number" th:if="${device.anomaly == -1}">超时</span>
+                            <span class="info-box-number" th:if="${device.anomaly == 1}">低电</span>
+                            <span class="info-box-number" th:if="${device.anomaly == 2}">掉电</span>
+                            <span style="font-weight: bold">所属位置点：</span>
+                            <span style="font-weight: bold" th:text="${device.location.locationname}"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row hide" style="padding: 0px 13px 10px 15px" id="location-sensor">
+                    <div style="font-size: 25px;background-color: #3c8dbc;color: #fff" id="locationName">山顶洞人</div>
+                    <div style="font-weight: bold;background-color: #00c0ef;color: #fff;padding: 10px 15px 5px 15px">
+                        <div class="hide">X轴加速度：<span id="A-X" class="pull-right">/</span></div>
+                        <div class="hide">Y轴加速度：<span id="A-Y" class="pull-right">/</span></div>
+                        <div class="hide">Z轴加速度：<span id="A-Z" class="pull-right">/</span></div>
+                        <div class="hide">振动：<span id="Vibration" class="pull-right">/</span></div>
+                        <div class="hide">微动：<span id="SM" class="pull-right">/</span></div>
+                        <div class="hide">红外：<span id="IR" class="pull-right">/</span></div>
+                    </div>
+                </div>
+                <div id="monitor-data"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://webapi.amap.com/maps?v=1.3&key=cac081a2d3c350c73c333e25fca8516b"></script>
+<script src="//webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(function () {
+        var relicId = [[${relicId}]];
+        var relics = [[${relics}]];
+
+        function calculateHeight() {
+            var height = $(window).height();
+            $("#content").css({
+                "min-height": height - 50,
+                "background-color": "#ecf0f5",
+                "padding": "15px 15px 15px 245px"
+            });
+            if (relics == null) {
+                $("#container").css({
+                    "min-height": height - 125
+                });
+            } else {
+                for (var j = 0; j < relics.length; j++) {
+                    var relic = relics[j];
+                    if (relic.id != relicId) {
+                        continue;
+                    }
+                    if (relic.alarmRecordList.length == 0) {
+                        $("#container").css({
+                            "min-height": height - 125
+                        });
+                    } else {
+                        $("#container").css({
+                            "min-height": height - 420
+                        });
+                    }
+                }
+            }
+        }
+
+        calculateHeight();
+
+        AMapUI.loadUI(['control/BasicControl'], function(BasicControl) {
+            var layerCtrl = new BasicControl.LayerSwitcher({
+                position: 'tr'
+            });
+            var map = new AMap.Map('container', {
+                //这里将layerCtrl中启用的图层传递给map
+                layers: layerCtrl.getEnabledLayers()
+            });
+            map.addControl(layerCtrl);
+            //地图回到初始状态
+            $("#reload").click(function () {
+                map.setFitView();
+            });
+
+            AMap.plugin(['AMap.ToolBar'],
+                function () {
+                    map.addControl(new AMap.ToolBar({
+                        position: 'RB',
+                        liteStyle: true
+                    }));
+                });
+
+            $(window).resize(function () {
+                calculateHeight();
+                map.setFitView();
+            });
+
+            if (relics.length != 0) {
+                if (relicId == null) {
+                    relicId = relics[0].id;
+                    newMarker(relics[0]);
+                    map.setFitView();
+                }
+                for (var i = 0; i < relics.length; i++) {
+                    var relic = relics[i];
+                    if (relic.id == relicId) {
+                        newMarker(relic);
+                        map.setFitView();
+                    }
+                }
+            }
+
+            function newMarker(relic) {
+                var deviceCount = relic.count.deviceCount;
+                var alarmCount = relic.count.alarmCount;
+                var image = "../../image/1.2/relic-normal.png";
+                if (deviceCount != 0) {
+                    image = "../../image/1.2/device-exception.png";
+                }
+                if (alarmCount != 0) {
+                    image = "../../image/1.2/relic-exception.png";
+                }
+                new AMap.Marker({
+                    map: map,
+                    title: relic.name,
+                    label: {
+                        content: relic.name,
+                        offset: new AMap.Pixel(0, 40)
+                    },
+                    position: [relic.lng, relic.lat],
+                    icon: new AMap.Icon({
+                        size: new AMap.Size(40, 40),
+                        image: image
+                    })
+                });
+            }
+        });
+
+        function getRealTimeData() {
+            $.getJSON({
+                url: "../../sys/overviews/getRelicRealTimeData?relicId=" + relicId,
+                success: function (data) {
+                    var $relic = $("#monitor-data");
+                    var $location = $("#location-sensor");
+                    $relic.empty();
+                    for (var i = 0; i < data.length; i++) {
+                        var locationData = data[i];
+                        var locationSensorInfoMap = locationData.locationSensorInfoMap;
+                        var $newLocation = $location.clone();
+                        $newLocation.attr("class", "row");
+                        $newLocation.find("#locationName").text(locationData.locationName);
+                        for (var sensorId in locationSensorInfoMap) {
+                            console.log(sensorInfo);
+                            var sensorInfo = locationSensorInfoMap[sensorId];
+                            var text = sensorInfo.sensorPhysicalValue + sensorInfo.units;
+                            console.log(text);
+                            if (sensorId == 111) {
+                                $newLocation.find("#A-X").parent().attr("class", "p-5");
+                                $newLocation.find("#A-X").attr("class", "pull-right").text(text);
+                            }
+                            if (sensorId == 112) {
+                                $newLocation.find("#A-Y").parent().attr("class", "p-5");
+                                $newLocation.find("#A-Y").attr("class", "pull-right").text(text);
+                            }
+                            if (sensorId == 113) {
+                                $newLocation.find("#A-Z").parent().attr("class", "p-5");
+                                $newLocation.find("#A-Z").attr("class", "pull-right").text(text);
+                            }
+                            if (sensorId == 114) {
+                                $newLocation.find("#Vibration").parent().attr("class", "p-5");
+                                if (sensorInfo.sensorPhysicalValue == 0) {
+                                    $newLocation.find("#Vibration").attr("class", "label label-success pull-right").text("关");
+                                } else {
+                                    $newLocation.find("#Vibration").attr("class", "label label-danger pull-right").text("开");
+                                }
+                            }
+                            if (sensorId == 115) {
+                                $newLocation.find("#IR").parent().attr("class", "p-5");
+                                if (sensorInfo.sensorPhysicalValue == 0) {
+                                    $newLocation.find("#IR").attr("class", "label label-success pull-right").text("关");
+                                } else {
+                                    $newLocation.find("#IR").attr("class", "label label-danger pull-right").text("开");
+                                }
+                            }
+                            if (sensorId == 116) {
+                                $newLocation.find("#SM").parent().attr("class", "p-5");
+                                if (sensorInfo.sensorPhysicalValue == 0) {
+                                    $newLocation.find("#SM").attr("class", "label label-success pull-right").text("关");
+                                } else {
+                                    $newLocation.find("#SM").attr("class", "label label-danger pull-right").text("开");
+                                }
+                            }
+                        }
+                        $relic.append($newLocation);
+                    }
+                }
+            })
+        }
+
+        getRealTimeData();
+        //每分钟刷新一次
+        setInterval(getRealTimeData, 1000);
+    });
+</script>
+</body>
+</html>

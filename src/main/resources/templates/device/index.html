@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>设备列表</title>
+    <link th:href="@{/common/css/base.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/assets/pnotify/1.2.0/jquery.pnotify.default.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/assets/pnotify/1.2.0/custom.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<section th:fragment="content">
+    <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            <li class="pull-left header"><i class="fa fa-th"></i>设备列表</li>
+            <li class="active"><a href="#all" data-toggle="tab">所有设备</a></li>
+            <li><a href="#exception" data-toggle="tab">异常设备</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="all">
+                <form class="form-inline" style="padding-left: 20px" th:action="@{/sys/devices}" method="get">
+                    <div class="form-group">
+                        <label for="nodeid">设备ID:</label>
+                        <input type="text" class="form-control" id="nodeid" name="nodeid" placeholder="设备ID"
+                               th:value="${nodeInfo.nodeid}">
+                    </div>
+                    <div class="form-group">
+                        <label for="nodetype">设备类型:</label>
+                        <select class="form-control" id="nodetype" name="nodetype">
+                            <option value="-1">全选</option>
+                            <option value="1" th:selected="${nodeInfo.nodetype == 1}? true">节点</option>
+                            <option value="2" th:selected="${nodeInfo.nodetype == 2}? true">中继</option>
+                            <option value="3" th:selected="${nodeInfo.nodetype == 3}? true">主模块</option>
+                            <option value="5" th:selected="${nodeInfo.nodetype == 5}? true">控制模块</option>
+                            <option value="7" th:selected="${nodeInfo.nodetype == 7}? true">网关</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" id="btn">查询</button>
+                </form>
+                <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+                    <table class="table table-hover table-condensed table-striped table-bordered">
+                        <thead>
+                        <th>#</th>
+                        <th>设备ID</th>
+                        <th>设备类型</th>
+                        <th>状态</th>
+                        <th>产品序列号</th>
+                        <th>信号强度/链路质量</th>
+                        <th>操作</th>
+                        </thead>
+                        <tbody>
+                        <tr th:each="device:${pageInfo.list}">
+                            <td th:text="${deviceStat.count}"></td>
+                            <div th:switch="${device.nodetype}">
+                                <td th:case="1"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a></strong></td>
+                                <td th:case="2"><i class="mw-icon-repeator"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                                <td th:case="3"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                                <td th:case="5"><i class="mw-icon-control-module"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                                <td th:case="7"><i class="mw-icon-gateway"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                            </div>
+                            <div th:switch="${device.nodetype}">
+                                <td th:case="1" th:text="节点"></td>
+                                <td th:case="2" th:text="中继"></td>
+                                <td th:case="3" th:text="主模块"></td>
+                                <td th:case="5" th:text="控制模块"></td>
+                                <td th:case="7" th:text="网关"></td>
+                            </div>
+                            <div th:switch="${device.anomaly}">
+                                <td th:case="-1"><span th:text="超时" class="label label-danger"></span></td>
+                                <td th:case="0"><span th:text="正常" class="label label-success"></span></td>
+                                <td th:case="1"><span th:text="低电压" class="label label-warning"></span></td>
+                                <td th:case="2"><span th:text="掉电" class="label label-warning"></span></td>
+                            </div>
+                            <td th:text="${device.sn}"></td>
+                            <td>
+                                <i th:class="mw-icon-wifi"></i><span th:text="${device.rssi}"></span>
+                                <i th:class="mw-icon-connect"></i><span th:text="${device.lqi}"></span>
+                            </td>
+                            <td>
+                                <a shiro:hasPermission="sys:device:edit" class="btn btn-warning btn-xs"
+                                   th:href="@{/sys/devices/edit(nodeid=${device.nodeid})}">修改
+                                    <span class="glyphicon glyphicon-edit"></span>
+                                </a>
+                                <a shiro:hasPermission="sys:device:edit" class="btn btn-danger btn-xs btn-del"
+                                   th:id="${device.nodeid}">删除
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+                    <div class="box-footer clearfix">
+                        <ul class="pagination pagination-sm no-margin pull-right">
+                            <li th:class="${pageInfo.isFirstPage}?'disabled'">
+                                <a aria-label="Previous" id="previous"
+                                   th:onclick="${pageInfo.isFirstPage}?'return false'">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li th:class="${navigatepageNum==pageInfo.pageNum}?'active'"
+                                th:each="navigatepageNum : ${pageInfo.navigatepageNums}">
+                                <a th:data-id="${navigatepageNum}" th:value="${navigatepageNum}"
+                                   th:text="${navigatepageNum}"
+                                   class="navigatePage"></a>
+                            </li>
+                            <li th:class="${pageInfo.isLastPage}?'disabled'">
+                                <a aria-label="Next" id="next" th:onclick="${pageInfo.isLastPage}?'return false'">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(pageInfo.list)}" style="margin: 30px;padding-bottom: 30px">
+                    <h3>暂无数据</h3>
+                </div>
+            </div>
+            <div class="tab-pane" id="exception">
+                异常设备
+
+                <div th:if="${not #lists.isEmpty(exceptionDevices)}">
+                    <table class="table table-hover table-condensed table-striped table-bordered">
+                        <thead>
+                        <th>#</th>
+                        <th>设备ID</th>
+                        <th>设备类型</th>
+                        <th>状态</th>
+                        <th>产品序列号</th>
+                        <th>信号强度/链路质量</th>
+                        <th>操作</th>
+                        </thead>
+                        <tbody>
+                        <tr th:each="device:${exceptionDevices}">
+                            <td th:text="${deviceStat.count}"></td>
+                            <div th:switch="${device.nodetype}">
+                                <td th:case="1"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a></strong></td>
+                                <td th:case="2"><i class="mw-icon-repeator"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                                <td th:case="3"><i class="mw-icon-sensor"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                                <td th:case="5"><i class="mw-icon-control-module"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                                <td th:case="7"><i class="mw-icon-gateway"></i>&nbsp;&nbsp;<strong>
+                                    <a th:href="@{/sys/devices/detail(nodeid=${device.nodeid})}"
+                                       th:text="${device.nodeid}"></a>
+                                </strong></td>
+                            </div>
+                            <div th:switch="${device.nodetype}">
+                                <td th:case="1" th:text="节点"></td>
+                                <td th:case="2" th:text="中继"></td>
+                                <td th:case="3" th:text="主模块"></td>
+                                <td th:case="5" th:text="控制模块"></td>
+                                <td th:case="7" th:text="网关"></td>
+                            </div>
+                            <div th:switch="${device.anomaly}">
+                                <td th:case="-1"><span th:text="超时" class="label label-danger"></span></td>
+                                <td th:case="0"><span th:text="正常" class="label label-success"></span></td>
+                                <td th:case="1"><span th:text="低电压" class="label label-warning"></span></td>
+                                <td th:case="2"><span th:text="掉电" class="label label-warning"></span></td>
+                            </div>
+                            <td th:text="${device.sn}"></td>
+                            <td>
+                                <i th:class="mw-icon-wifi"></i><span th:text="${device.rssi}"></span>
+                                <i th:class="mw-icon-connect"></i><span th:text="${device.lqi}"></span>
+                            </td>
+                            <td>
+                                <a shiro:hasPermission="sys:device:edit" class="btn btn-warning btn-xs"
+                                   th:href="@{/sys/devices/edit(nodeid=${device.nodeid})}">修改
+                                    <span class="glyphicon glyphicon-edit"></span>
+                                </a>
+                                <a shiro:hasPermission="sys:device:edit" class="btn btn-danger btn-xs btn-del"
+                                   th:id="${device.nodeid}">删除
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:include="deleteModel :: deleteModel"></div>
+</section>
+<div th:fragment="script">
+    <script type="text/javascript" th:src="@{/assets/pnotify/1.2.0/jquery.pnotify.min.js}"></script>
+    <script type="text/javascript" th:src="@{/common/pnotify.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+//        设备分页
+        $(function () {
+            var isFirstPage = [[${pageInfo.isFirstPage}]];
+            var isLastPage = [[${pageInfo.isLastPage}]];
+            var pageSize = [[${pageInfo.pageSize}]];
+            var nodeid = $("#nodeid").val();
+            var nodetype = $("#nodetype").val();
+            var uri = [[@{/sys/devices}]]+"?pageSize=" + pageSize + "&nodetype=" + nodetype;
+            if (nodeid != null && nodeid != "") {
+                uri = uri + "&nodeid=" + nodeid;
+            }
+            $("#previous").click(function () {
+                var pageNum = [[${pageInfo.prePage}]];
+                if (isFirstPage == false) {
+                    var preUri = uri + "&pageNum=" + pageNum;
+                    window.location.href = preUri;
+                }
+            });
+            $(".navigatePage").click(function () {
+                var pageNum = $(this).data("id");
+                var navUri = uri + "&pageNum=" + pageNum;
+                window.location.href = navUri;
+            });
+            $("#next").click(function () {
+                var pageNum = [[${pageInfo.nextPage}]];
+                if (isLastPage == false) {
+                    var nextUri = uri + "&pageNum=" + pageNum;
+                    window.location.href = nextUri;
+                }
+            });
+        });
+        $(function () {
+//                删除提示信息
+            var nodeid;
+            var $this;
+            $(".btn-del").click(function () {
+                $this = $(this);
+                nodeid = $this.attr("id");
+                $("#myModal").modal("toggle");
+            });
+            $('#okBtn').click(function () {
+                $("#myModal").modal("toggle");
+                window.location.href = [[@{/sys/devices/delete}]]+"?nodeid=" + nodeid;
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

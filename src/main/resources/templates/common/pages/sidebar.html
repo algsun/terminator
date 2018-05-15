@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- Left side column. contains the logo and sidebar -->
+<aside class="main-sidebar">
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+        <ul class="sidebar-menu" data-widget="tree">
+            <!--<li th:each="menu : ${session.menus}" class="header"
+                th:text="${menu.name}">
+
+            </li>-->
+            <li class="treeview active" >
+                <!--<a>
+                    &lt;!&ndash;<span th:text="${menu.name}"></span>
+                    <span th:text="${menu.parentId}"></span>&ndash;&gt;
+                    <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>-->
+                <ul class="treeview-menu" >
+                    <li th:each="menu : ${session.menus}" th:if="(${menu.parentId} == ${session.currentSystem})"
+                        th:class="(${menu.id} == ${session.currentMenu.id})?'active'">
+                        <a th:href="@{/systems/{menuId}/menu(menuId =${menu.id})}">
+                            <span th:text="${menu.name}"></span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <!-- <li  th:each="menu : ${menus}" th:class="${menu.parentId==1}?'treeview':'treeview-menu'">
+                 <a th:href="@{/systems/{menuId}/menu(menuId =${menu.id})}">
+                     <span th:text="${menu.name}"></span>
+                 </a>
+             </li>-->
+        </ul>
+    </section>
+</aside>
+<script type="text/javascript" th:inline="javascript">
+    /*  $(function () {
+     var $li, $menu_f_ul;
+     var menus = [[${session.menus}]];
+     $.each(menus, function (index, menu) {
+     if (menu.parentId == 1) {
+     $li = $('<li class="treeview"></li>');
+     var $menu_f = $('<a href="#">\n' +
+     '<span>' + menu.name + '</span>\n' +
+     ' <span class="pull-right-container">\n' +
+     '<i class="fa fa-angle-left pull-right"></i>\n' +
+     '</span></a>');
+     $li.append($menu_f);
+     $menu_f_ul = $('<ul class="treeview-menu"></ul>');
+     $li.append($menu_f_ul);
+     $("ul.sidebar-menu").append($li);
+
+     } else if (menu.parentId == 2) {
+     var $menu_s = $('<li><a th:href="@{/systems/{menuId}/menu(menuId=${menu.id})}" data-url="terminator' + menu.href + '">' + menu.name + '</a></li>');
+     $menu_f_ul.append($menu_s);
+
+     }
+
+     });
+     });*/
+</script>
+</html>

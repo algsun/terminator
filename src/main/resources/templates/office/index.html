@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>系统设置-机构管理</title>
+    <link th:href="@{/assets/pnotify/1.2.0/jquery.pnotify.default.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/assets/pnotify/1.2.0/custom.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+<section th:fragment="content">
+    <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="box">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a th:href="@{/sys/offices}">机构列表</a></li>
+                <li><a shiro:hasPermission="sys:office:edit" th:href="@{/sys/offices/new}">机构添加</a></li>
+            </ul>
+        </div>
+        <div th:if="${not #lists.isEmpty(pageInfo.list)}">
+            <div class="box-body">
+                <table class="table table-striped table-hover table-condensed">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>机构名称</th>
+                        <th><span shiro:hasPermission="sys:office:edit">操作</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="office:${pageInfo.list}">
+                        <td th:text="${officeStat.count}"></td>
+                        <td th:text="${office.officeName}">暂无数据</td>
+                        <td>
+                            <a shiro:hasPermission="sys:office:edit" class="btn btn-warning btn-xs"
+                               th:href="@{/sys/offices/edit(id=${office.id})}">修改
+                                <span class="glyphicon glyphicon-edit"></span>
+                            </a>
+                            <a shiro:hasPermission="sys:office:edit" class="btn btn-danger btn-xs btn-del"
+                               th:id="${office.id}">删除
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="box-footer clearfix">
+                <ul class="pagination pagination-sm no-margin pull-right" >
+                    <li th:class="${pageInfo.isFirstPage}?'disabled'">
+                        <a th:href="@{/sys/offices(pageNum=${pageInfo.prePage},pageSize=${pageInfo.pageSize})}"
+                           aria-label="Previous" th:onclick="${pageInfo.isFirstPage}?'return false'">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li th:class="${navigatepageNum==pageInfo.pageNum}?'active'"
+                        th:each="navigatepageNum : ${pageInfo.navigatepageNums}" >
+                        <a th:href="@{/sys/offices(pageNum=${navigatepageNum},pageSize=${pageInfo.pageSize})}"
+                           th:text="${navigatepageNum}"></a>
+                    </li>
+                    <li th:class="${pageInfo.isLastPage}?'disabled'">
+                        <a th:href="@{/sys/offices(pageNum=${pageInfo.nextPage},pageSize=${pageInfo.pageSize})}"
+                           aria-label="Next" th:onclick="${pageInfo.isLastPage}?'return false'">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(pageInfo.list)}" style="margin: 30px;padding-bottom: 30px">
+            <h2>暂无数据</h2>
+        </div>
+    </div>
+    <div th:include="deleteModel :: deleteModel"></div>
+</section>
+
+<div th:fragment="script" th:inline="javascript">
+    <script type="text/javascript" th:src="@{/assets/pnotify/1.2.0/jquery.pnotify.min.js}"></script>
+    <script type="text/javascript" th:src="@{/common/pnotify.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        $(function () {
+//            删除提示信息
+            var officeId;
+            var $this;
+            var users=[[${users}]];
+            $(".btn-del").click(function () {
+                $this = $(this);
+                officeId = $this.attr("id");
+                $("#myModal").modal("toggle");
+            });
+            $('#okBtn').click(function () {
+                $("#myModal").modal("toggle");
+                console.log([[@{/sys/offices/delete}]]+"?id=" + officeId);
+                window.location.href=[[@{/sys/offices/delete}]]+"?id=" + officeId;
+            });
+
+//            禁用关联机构删除功能
+            var $delBut=$(".btn-danger");
+            var users=[[${users}]];
+            for(var i=0;i<$delBut.size();i++){
+                for(var j=0;j<users.length;j++){
+                    if(users[j].officeId == $delBut[i].id){
+                        $delBut[i].setAttribute("class","btn btn-danger btn-xs btn-del disabled");
+                    }
+                }
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

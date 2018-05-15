@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <title>角色管理</title>
+</head>
+<body>
+<section th:fragment="content" id="roleList">
+    <!--提示信息-->
+    <div th:replace="notifyMessage :: notifyMessage(${success},${message})">
+
+    </div>
+
+
+    <div class="box">
+        <!--<div class="box-header with-border">
+            <h3 class="box-title">角色管理</h3>
+        </div>-->
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li shiro:hasPermission="sys:role:view"role="presentation" class="active"><a th:href="@{/sys/roles}">角色列表</a></li>
+                <li shiro:hasPermission="sys:role:edit" role="presentation"><a th:href="@{/sys/roles/new}">角色添加</a></li>
+            </ul>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <h3 th:if="${#lists.isEmpty(pagehelper.list)}">暂无数据</h3>
+            <table th:if="${not #lists.isEmpty(pagehelper.list)}"
+                   class="table table-bordered table-hover table-striped table-condensed">
+                <tr>
+                    <th>序号</th>
+                    <th>角色名称</th>
+                    <th><span shiro:hasPermission="sys:role:edit">操作</span></th>
+                </tr>
+                <tr th:each="role : ${pagehelper.list}" th:object="${role}">
+                    <td th:text="${roleStat.count}"></td>
+                    <td th:text="*{name}"></td>
+                    <td>
+                        <a shiro:hasPermission="sys:role:edit" class="btn btn-warning btn-xs"
+                           th:href="@{/sys/roles/{id}/edit/(id=${role.id})}">修改<span
+                                class="glyphicon glyphicon-edit"></span></a>
+                        <a shiro:hasPermission="sys:role:edit" th:data-id="${role.id}"
+                           class="btn btn-danger btn-xs btn-del">删除<span class="glyphicon glyphicon-remove"></span></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!-- /.box-body -->
+        <!--<div class="box-footer clearfix" th:if="not ${#lists.isEmpty(pagehelper.list)}">
+            <ul class="pagination pagination-sm no-margin pull-right">
+                <li th:class="${pagehelper.isFirstPage}?'disabled'"><a
+                        th:onclick="${pagehelper.isFirstPage}?'return false'"
+                        th:href="@{/sys/roles(pageNumber=${pagehelper.prePage},pageSize=${pagehelper.pageSize})}"
+                        aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                <li th:each="navigatepageNum : ${pagehelper.navigatepageNums}"
+                    th:class="${navigatepageNum==pagehelper.pageNum}?'active'">
+                    <a th:href="@{/sys/roles(pageNumber=${navigatepageNum},pageSize=${pagehelper.pageSize})}"
+                       th:text="${navigatepageNum}"></a></li>
+                <li th:class="${pagehelper.isLastPage}?'disabled'"><a
+                        th:onclick="${pagehelper.isLastPage}?'return false'"
+                        th:href="@{/sys/roles(pageNumber=${pagehelper.nextPage},pageSize=${pagehelper.pageSize})}"
+                        aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+            </ul>
+        </div>-->
+        <!--分页-->
+        <div th:replace="navigation :: navigation(${pagehelper})">
+
+        </div>
+    </div>
+    <!-- /.box -->
+    <!--删除弹出model-->
+    <div th:include="deleteModel :: deleteModel"></div>
+</section>
+<div th:fragment="script">
+    <script th:inline="javascript">
+        $(function () {
+            var id;
+            var $this;
+            $(".btn-del").click(function () {
+                id = $(this).data("id");
+                $this = $(this);
+                $('#myModal').modal('toggle');
+            });
+
+            $('#okBtn').click(function () {
+                $('#myModal').modal('toggle');
+                var url = [[@{/}]]+"sys/roles/"+id+"/delete";
+                    window.location.href = url;
+                }
+                );
+        });
+    </script>
+</div>
+
+</body>
+</html>

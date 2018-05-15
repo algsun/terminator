@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.microwise.terminator.sys.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="com.microwise.terminator.sys.entity.User">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="office_id" jdbcType="VARCHAR" property="officeId"/>
+        <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="mobile" jdbcType="VARCHAR" property="mobile"/>
+        <result column="login_ip" jdbcType="VARCHAR" property="loginIp"/>
+        <result column="login_date" jdbcType="TIMESTAMP" property="loginDate"/>
+        <result column="login_flag" jdbcType="BIT" property="loginFlag"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_date" jdbcType="TIMESTAMP" property="updateDate"/>
+        <result column="del_flag" jdbcType="BIT" property="delFlag"/>
+    </resultMap>
+    <select id="findUser" parameterType="java.lang.String" resultMap="BaseResultMap">
+    SELECT
+    u.id,
+    u.office_id,
+    u.login_name,
+    u.password,
+    u.name,
+    u.email,
+    u.mobile,
+    u.login_ip,
+    u.login_date,
+    u.login_flag,
+    u.create_by,
+    u.create_date,
+    u.update_by,
+    u.update_date,
+    u.del_flag
+    FROM
+    sys_user u
+    WHERE
+    u.id != #{id}
+    AND
+    u.del_flag != 1
+    AND
+    (u.login_name=#{condition} OR u.email=#{condition} OR u.mobile=#{condition})
+  </select>
+</mapper>

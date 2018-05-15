@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>系统设置-机构管理</title>
+    <link th:href="@{assets/pnotify/1.2.0/jquery.pnotify.default.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{assets/pnotify/1.2.0/custom.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+<section th:fragment="content">
+    <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="box">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li><a th:href="@{/sys/offices}">机构列表</a></li>
+                <li class="active"><a th:href="@{/sys/offices/edit}">机构修改</a></li>
+            </ul>
+        </div>
+        <div class="box-body">
+            <form class="form-horizontal" th:object="${office}" method="post" th:action="@{/sys/offices/update}"
+                  id="officeForm">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <label for="id" class="col-sm-2 control-label">机构代码<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="id" placeholder="机构代码"
+                                       th:field="*{id}" th:disabled="true">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="officeName" class="col-sm-2 control-label">机构名称<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="officeName" placeholder="机构名称"
+                                       th:field="*{officeName}" maxlength="100">
+                                <input type="hidden" th:field="*{id}">
+                                <input type="hidden" th:field="*{delFlag}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button type="submit" class="btn btn-primary btn-sm">保存</button>
+                                <a type="input" class="btn btn-sm btn-default" th:href="@{/sys/offices}">返回</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<div th:fragment="script" th:inline="javascript">
+    <script th:src="@{/webjars/jquery-validation/1.17.0/jquery.validate.js}"></script>
+    <script th:src="@{/webjars/jquery-validation/1.17.0/additional-methods.js}"></script>
+    <script type="text/javascript" th:src="@{/assets/pnotify/1.2.0/jquery.pnotify.min.js}"></script>
+    <script type="text/javascript" th:src="@{/common/pnotify.js}"></script>
+    <script type="text/javascript" th:src="@{/common/validation.js}"></script>
+    <script type="text/javascript">
+        $("#officeForm").validate({
+            rules: {
+                officeName: {
+                    required: true,
+                    remote: {
+                        url: "./exists",
+                        type: "post",
+                        data: {
+                            condition: function () {
+                                return $("#officeName").val();
+                            },
+                            id: function () {
+                                return $("#id").val();
+                            }
+                        }
+                    }
+                }
+            },
+            messages: {
+                officeName: {
+                    required: "请输入机构名称",
+                    remote: "机构名称相同"
+                }
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

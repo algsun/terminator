@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <title>报警处理</title>
+    <style type="text/css">
+        dl dd span {
+            white-space: pre-wrap;
+            text-overflow: clip;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+<section th:fragment="content">
+    <div class="box box-default">
+        <!--提示信息-->
+        <div th:replace="notifyMessage :: notifyMessage(${success},${message})">
+
+        </div>
+        <div class="box-header with-border">
+            <h3 class="box-title">报警处理</h3>
+        </div>
+        <div class="row">
+            <div class="col-md-10">
+                <form id="alarmTaskEdit" role="form" class="form-horizontal" method="post" th:object="${alarmTask}"
+                      th:action="@{/alarmTask/update(id=*{id})}">
+                    <div class="box-body">
+                        <dl class="dl-horizontal">
+                            <dt>文物</dt>
+                            <input id="id" type="hidden" th:value="*{id}">
+                            <dd><span th:text="*{relic.name}"></span></dd>
+                        </dl>
+
+                        <dl class="dl-horizontal">
+                            <dt>报警原因</dt>
+                            <dd><span th:text="*{factor}"></span></dd>
+                        </dl>
+                        <dl class="dl-horizontal">
+                            <dt>处理措施</dt>
+                            <dd>
+                                <textarea class="form-control" rows="5" th:text="*{handlemeasure}" name="handlemeasure"></textarea>
+                            </dd>
+                        </dl>
+
+
+                        <div class="form-group">
+                            <div class="col-md-offset-2 col-md-10">
+                                <button id="formSubmit" type="submit" class="btn btn-primary btn-sm">保存</button>
+                                <a type="input" class="btn btn-sm btn-default"
+                                   th:href="@{/alarmTask/index}">返回</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<div th:fragment="script">
+    <script th:src="@{/webjars/jquery-validation/1.17.0/jquery.validate.min.js}" type="text/javascript"></script>
+    <script th:src="@{/webjars/jquery-validation/1.17.0/additional-methods.min.js}" type="text/javascript"></script>
+    <script th:src="@{/common/validation.js}"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#alarmTaskEdit").validate({
+                rules: {
+                    handlemeasure: {
+                        maxlength: 500
+                    }
+                },
+                messages: {
+                    handlemeasure: {
+                        maxlength: "不能超过500个字符"
+                    }
+                }
+            });
+        });
+    </script>
+</div>
+
+</body>
+</html>

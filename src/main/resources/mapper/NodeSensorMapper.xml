@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.microwise.terminator.sys.mapper.NodeSensorMapper">
+  <resultMap id="BaseResultMap" type="com.microwise.terminator.sys.entity.NodeSensor">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="nodeid" jdbcType="VARCHAR" property="nodeid" />
+    <result column="sensorPhysicalid" jdbcType="INTEGER" property="sensorphysicalid" />
+    <result column="sensorPhysicalValue" jdbcType="VARCHAR" property="sensorphysicalvalue" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="stamp" jdbcType="TIMESTAMP" property="stamp" />
+    <result column="dataVersion" jdbcType="BIGINT" property="dataversion" />
+  </resultMap>
+</mapper>

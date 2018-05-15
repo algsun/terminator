@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.microwise.terminator.sys.mapper.LocationMapper">
+  <resultMap id="BaseResultMap" type="com.microwise.terminator.sys.entity.Location">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="locationName" jdbcType="VARCHAR" property="locationname" />
+    <result column="nodeId" jdbcType="VARCHAR" property="nodeid" />
+    <result column="zoneId" jdbcType="VARCHAR" property="zoneid" />
+    <result column="siteId" jdbcType="VARCHAR" property="siteid" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createtime" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="photo" jdbcType="VARCHAR" property="photo" />
+  </resultMap>
+
+  <select id="findHistoryDataList" parameterType="java.util.Map"
+          resultType="RecentDataVO">
+    <![CDATA[
+	        SELECT
+	          b.nodeid AS deviceId,
+		      b.createtime AS stamp,
+		      b.lowvoltage AS lowvoltage,
+		      b.anomaly AS anomaly
+		    FROM
+		      `${locationId}` AS b
+		    WHERE
+		      b.createtime >=#{startDate}
+		     AND
+		     b.createtime <=#{endDate} AND b.state != 5
+		    GROUP BY b.createtime
+		    ORDER BY b.createtime  DESC
+		]]>
+  </select>
+
+  <select id="findRecentDataList" parameterType="java.util.Map"
+          resultType="RecentDataVO">
+    <![CDATA[
+	        SELECT
+	          b.nodeid AS deviceId,
+		      b.createtime AS stamp,
+		      b.lowvoltage AS lowvoltage,
+		      b.anomaly AS anomaly
+		    FROM
+		      `${locationId}` AS b
+		    WHERE
+		      b.createtime >=#{startTime}
+		     AND
+		     b.createtime <=#{endTime} AND b.state != 5
+		    GROUP BY b.createtime
+		    ORDER BY b.createtime
+		]]>
+  </select>
+
+  <select id="findHistoryDataListCount" parameterType="java.util.Map"
+          resultType="int">
+    <![CDATA[
+           SELECT
+            COUNT(1)
+             FROM(
+	        SELECT
+	         b.createtime AS stamp
+		    FROM
+		      `${locationId}` AS b
+		    WHERE
+		       b.state != 5 AND b.createtime BETWEEN #{beginTime} AND #{endTime}
+		    GROUP BY b.createtime )
+		    a
+		]]>
+  </select>
+
+  <select id="findLocationHistoryData" resultType="LocationDataVO"
+          parameterType="java.util.Map">
+    <![CDATA[
+
+		    SELECT
+              temp.*,
+              t.conditionType,
+              t.target,
+              t.floating
+            FROM (SELECT
+                     #{locationId} AS locationId,
+                     a.sensorPhysicalid    AS sensorPhysicalid,
+                     a.sensorPhysicalvalue AS sensorPhysicalvalue,
+                     a.createtime          AS stamp,
+                     a.state               AS state,
+       ]]>
+    <![CDATA[
+                      s.`units`             as units,
+                      s.showType            AS showType
+                   FROM
+                      `${locationId}` AS a
+                   LEFT JOIN
+                      m_sensorinfo AS s ON s.sensorPhysicalid = a.sensorPhysicalid
+                   WHERE
+                      a.createtime=#{date}
+                   GROUP BY a.sensorPhysicalid
+                   ORDER BY a.createtime) temp
+          LEFT JOIN m_threshold t
+          ON temp.locationId = t.locationId AND temp.sensorPhysicalid = t.sensorPhysicalId
+        ]]>
+  </select>
+
+  <select id="findLocationHistoryDataCount" parameterType="java.util.Map"
+          resultType="int">
+    <![CDATA[
+           SELECT
+            COUNT(1)
+             FROM(
+	        SELECT
+	         b.createtime AS stamp
+		    FROM
+		      `${locationId}` AS b
+		    WHERE
+		       b.state != 5 AND b.createtime BETWEEN #{startTime} AND #{endTime}
+		    GROUP BY b.createtime )
+		    a
+		]]>
+  </select>
+
+  <!-- 查询当前时间段内有数据的年 -->
+  <select id="getExcelSum" parameterType="java.util.Map"
+          resultType="Integer">
+    <![CDATA[
+
+		  SELECT DISTINCT
+		     YEAR(a.`createtime`)
+		  FROM
+		    `${locationId}`AS a
+		  WHERE
+		     a.`createtime`>=#{startTime}
+		  AND
+		     a.`createtime`<=#{endTime}
+
+        ]]>
+  </select>
+
+  <!-- 查询最大和最小时间为查询设备历史数据表做查询条件 -->
+  <select id="findMaxAndMinTime" resultType="java.util.Map"
+          parameterType="java.util.Map">
+    <![CDATA[
+		  	SELECT
+				 min(b.createtime) AS minTime,
+				 max(b.createtime) AS maxTime
+			FROM
+			   (SELECT
+			          a.createtime
+			        FROM
+				 `${locationId}`  AS a
+		 ]]>
+    <if
+            test="endTime!=null  and startTime!=null ">
+      <![CDATA[
+		     WHERE
+		         a.createtime <=#{endTime}
+		     AND a.createtime >=#{startTime}
+		 ]]>
+    </if>
+
+    <![CDATA[
+				GROUP BY
+				  a.createtime
+				ORDER BY
+				  a.createtime DESC
+		 ]]>
+    <if test="start!=null and pageSize!=null">
+      LIMIT #{start},#{pageSize}
+    </if>
+    ) AS b
+
+  </select>
+    <!-- 查询最大的位置点编号 -->
+    <select id="getMaxLocationId" parameterType="java.lang.String"
+            resultType="java.lang.String">
+            SELECT
+              MAX(id)
+            FROM
+              `m_location` l
+            WHERE l.`siteId` = #{siteId}
+    </select>
+
+  <!-- 查询一个位置点已经激活的检测指标对应的实时数据值 -->
+  <select id="findLocationSensor" resultType="LocationDataVO"
+          parameterType="java.util.Map">
+    <![CDATA[
+			SELECT DISTINCT
+              mls.sensorPhysicalid    AS sensorPhysicalid,
+              mls.sensorPhysicalValue AS sensorPhysicalValue,
+              mls.state               AS state,
+              n.showType              AS showType,
+              n.cn_name               AS cnName,
+              n.en_name               AS enName,
+              mls.stamp               AS stamp,
+              n.units                 AS units,
+              t.conditionType,
+              t.target,
+              t.floating
+            FROM
+              m_location_sensor AS mls
+              LEFT JOIN m_sensorinfo AS n ON mls.sensorPhysicalid = n.sensorPhysicalid
+              LEFT JOIN m_threshold AS t ON mls.locationId = t.locationId AND mls.sensorPhysicalId = t.sensorPhysicalId
+            WHERE n.isActive = 1 AND mls.locationId =  #{locationId}
+		]]>
+    <if test="sensorPhysicalIdList !=null">
+      AND
+      mls.sensorPhysicalid
+      IN
+      <foreach collection="sensorPhysicalIdList" index="index"
+               item="item" open="(" separator="," close=")">
+        #{item}
+      </foreach>
+    </if>
+    ORDER BY mls.stamp DESC
+  </select>
+
+  <!-- 创建位置点数据表 -->
+  <update id="createLocationTable" parameterType="java.lang.String">
+    <![CDATA[
+		   	CREATE TABLE IF NOT EXISTS `${value}` (
+                id INT(11) NOT NULL AUTO_INCREMENT,
+                nodeid VARCHAR(20) NOT NULL COMMENT '产品入网唯一标识',
+                sensorPhysicalid INT(11) NOT NULL COMMENT '传感标识',
+                sensorPhysicalvalue VARCHAR(30) NOT NULL COMMENT '传感值',
+                lowvoltage FLOAT NOT NULL DEFAULT 0 COMMENT '电压值(默认为0)',
+                createtime DATETIME NOT NULL COMMENT '创建时间',
+                state INT(11) NOT NULL COMMENT '传感状态0：采样失败,1：采样正常,2：低于低阀值,3：超过高阀值,4：空数据',
+                dataVersion INT(11) DEFAULT 0 COMMENT '数据版本',
+                anomaly INT(11) NOT NULL DEFAULT '0' COMMENT '-1：超时,0：正常,1：低压,2：掉电',
+                PRIMARY KEY  (id),
+                INDEX(createtime),
+                CONSTRAINT ${value}physicalIdTime UNIQUE(sensorPhysicalid,createtime)
+               )ENGINE=INNODB DEFAULT CHARSET=utf8 COMMENT='节点数据表';
+		 ]]>
+  </update>
+
+  <!--删除位置点历史数据表-->
+  <update id="deleteLocationTable" parameterType="java.lang.String">
+    <![CDATA[
+                DROP  TABLE  if  EXISTS  `${value}`;
+		 ]]>
+  </update>
+  <!--修改位置点-->
+  <update id="updateLocation" parameterType="Location">
+      UPDATE
+      m_location
+      SET
+      locationName = #{locationname}
+      <if test="nodeid != null">
+          ,nodeId = #{nodeid}
+      </if>
+      <if test="nodeid == null">
+          ,nodeId = NULL
+      </if>
+      <if test="zoneid != null">
+          ,zoneId = #{zoneid}
+      </if>
+      <if test="zoneid == null">
+          ,zoneId = NULL
+      </if>
+      WHERE
+      id = #{id}
+  </update>
+</mapper>

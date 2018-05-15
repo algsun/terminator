@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <title>系统设置-用户管理</title>
+    <link th:href="@{/assets/pnotify/1.2.0/jquery.pnotify.default.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/assets/pnotify/1.2.0/custom.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+<section th:fragment="content">
+    <div th:class="${success}?'alert alert-success':'alert alert-error'" role="alert" th:if="${message}!=null">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="box">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li><a th:href="@{/sys/users}">用户列表</a></li>
+                <li class="active"><a th:href="@{/sys/users/new}">用户添加</a></li>
+            </ul>
+        </div>
+        <div class="box-body">
+            <form class="form-horizontal" th:object="${user}" method="post" th:action="@{/sys/users/save}"
+                  id="userForm">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <label for="name" class="col-sm-2 control-label">姓名<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="name" placeholder="姓名" th:field="*{name}"
+                                       maxlength="100">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginName" class="col-sm-2 control-label">登录名<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="loginName" placeholder="登录名"
+                                       th:field="*{loginName}" maxlength="100">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="office" class="col-sm-2 control-label">所属机构<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <select id="office" th:field="*{officeId}" class="form-control">
+                                    <option th:each="office:${offices}" th:value="${office.id}">
+                                        <label th:text="${office.officeName}">机构名称</label>
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password" class="col-sm-2 control-label">密码<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" id="password" placeholder="密码"
+                                       name="password" th:value="${user.password}" maxlength="100">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password" class="col-sm-2 control-label">确认密码<i class="text-red">*</i></label>
+                            <div class="col-sm-10 ">
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="确认密码"
+                                       name="confirmPassword" th:value="${user.password}" maxlength="100">
+                                <span style="display: none" id="confirm">密码不一致</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="col-sm-2 control-label">邮箱<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="email" class="form-control" id="email" placeholder="邮箱"
+                                       th:field="*{email}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobile" class="col-sm-2 control-label">手机<i class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="mobile" placeholder="手机"
+                                       th:field="*{mobile}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginFlag" class="col-sm-2 control-label">是否允许登录<i
+                                    class="text-red">*</i></label>
+                            <div class="col-sm-10">
+                                <select id="loginFlag" th:field="*{loginFlag}" class="form-control">
+                                    <option value="true">是</option>
+                                    <option value="false">否</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="roles" class="col-sm-2 control-label">用户角色<i class="text-red">*</i></label>
+                            <div class="col-sm-10" id="roles">
+                                <label class="checkbox-inline" th:each="role:${roles}">
+                                    <input type="checkbox" th:value="${role.id}" name="rolesId" class="roleId">
+                                    <label th:text="${role.name}">角色名称</label>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button type="submit" class="btn btn-primary btn-sm">保存</button>
+                                <a type="input" class="btn btn-sm btn-default" th:href="@{/sys/users}">返回</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+<div th:fragment="script">
+    <script th:src="@{/webjars/jquery-validation/1.17.0/jquery.validate.js}"></script>
+    <script th:src="@{/webjars/jquery-validation/1.17.0/additional-methods.js}"></script>
+    <script type="text/javascript" th:src="@{/assets/pnotify/1.2.0/jquery.pnotify.min.js}"></script>
+    <script type="text/javascript" th:src="@{/common/pnotify.js}"></script>
+    <script type="text/javascript" th:src="@{/common/validation.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        $(function () {
+//            checkbox数据回显
+            var $rolesId = $(".roleId");
+            var userRolesId = [[${user.rolesId}]];
+            for (var i = 0; i < userRolesId.length; i++) {
+                for (var j = 0; j < $rolesId.size(); j++) {
+                    if ($rolesId[j].value == userRolesId[i]) {
+                        $rolesId[j].setAttribute("checked", "true");
+                    }
+                }
+            }
+        });
+
+        $("#userForm").validate({
+            rules: {
+                name: "required",
+                loginName: {
+                    required: true,
+                    remote: {
+                        url: "./exists",
+                        type: "post",
+                        data: {
+                            condition: function () {
+                                return $("#loginName").val();
+                            },
+                            id: ""
+                        }
+                    }
+                },
+                office: "required",
+                password: {
+                    required: true,
+                    minlength: 8
+                },
+                confirmPassword: {
+                    required: true,
+                    equalTo: "#password"
+                },
+                email: {
+                    required: true,
+                    email: true,
+                    remote: {
+                        url: "./exists",
+                        type: "post",
+                        data: {
+                            condition: function () {
+                                return $("#email").val();
+                            },
+                            id: ""
+                        }
+                    }
+                },
+                mobile: {
+                    required: true,
+                    mobileCN: true,
+                    remote: {
+                        url: "./exists",
+                        type: "post",
+                        data: {
+                            condition: function () {
+                                return $("#mobile").val();
+                            },
+                            id: ""
+                        }
+                    }
+                },
+                loginFlag: "required",
+                rolesId: "required"
+            },
+            messages: {
+                name: "请输入用户姓名",
+                loginName: {
+                    required: "请输入登录名",
+                    remote: "您的用户名已被使用"
+                },
+                office: "请选择机构",
+                password: {
+                    required: "请输入密码",
+                    minlength: "密码至少8位"
+                },
+                confirmPassword: {
+                    required: "请再输入一次密码",
+                    equalTo: "密码不一致"
+                },
+                email: {
+                    required: "请输入邮箱地址",
+                    email: "邮件格式不正确",
+                    remote: "您的邮箱已被占用"
+                },
+                mobile: {
+                    required: "请输入联系电话",
+                    mobileCN: "请输入正确的手机号",
+                    remote: "您的手机号已被占用"
+                },
+                loginFlag: "请选择是否允许登录",
+                rolesId: "请为用户至少勾选一个角色"
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

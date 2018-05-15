@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<header class="main-header">
+    <a th:href="@{/systems/2/switch}" class="logo"><span>终结者</span></a>
+    <nav class="navbar navbar-static-top">
+        <a href="#" th:class="sidebar-toggle" data-toggle="push-menu" role="button"></a>
+        <ul class="nav navbar-nav">
+            <li th:each="system : ${session.menus}" th:if="${system.parentId} == 1"
+                th:class="(${system.id} == ${session.currentSystem})?'active'">
+                <a th:href="@{/systems/{systemId}/switch(systemId = ${system.id})}" th:text="${system.name}"></a>
+            </li>
+        </ul>
+        <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+                <li class="dropdown tasks-menu">
+                    <a th:href="@{/alarmTask/index}">
+                        <i class="fa fa-flag-o" id="flag"></i>
+                        <span class="label label-danger" id="alarmTaskCount"
+                              th:classappend="${session.alarmTaskCount}==0?'hide':''"
+                              th:text="${session.alarmTaskCount}">
+                        </span>
+                    </a>
+                </li>
+                <li class="dropdown user user-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <span class="hidden-xs"
+                              th:text="${T(com.microwise.terminator.sys.util.UserUtils).getCurrentUser().getName()}">Alexander Pierce</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="user-footer">
+                            <div class="pull-left">
+                                <a th:href="@{/sys/users/edit}" class="btn btn-default btn-flat">详情/修改</a>
+                            </div>
+                            <div class="pull-right">
+                                <a th:href="@{/logout}" class="btn btn-default btn-flat">退出登录</a>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+<div class="modal fade" id="singleAlarmRecordModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true" data-backdrop="false" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">报警提示</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered table-hover table-striped table-condensed">
+                    <tr>
+                        <th>机构</th>
+                        <th>文物</th>
+                        <th>报警原因</th>
+                        <th>报警时间</th>
+                        <th>状态</th>
+                    </tr>
+                    <tr>
+                        <td id="officeName"></td>
+                        <td id="relicName"></td>
+                        <td id="factor"></td>
+                        <td th:text="${#dates.format(#dates.createNow(),'yyyy-MM-dd HH:mm:ss')}"></td>
+                        <td id="state">未处理</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary aware">知道了</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:include="alarmRecordModel :: alarmRecordModel"
+     th:if="${!#lists.isEmpty(loginAlarm)}"></div>
+
+<script type="text/javascript" th:src="@{/webjars/sockjs-client/1.1.2/sockjs.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/stomp-websocket/2.3.3-1/stomp.min.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(function () {
+        var stompClient = null;
+        var alarmTaskCount = [[${session.alarmTaskCount}]];
+        var currentUser = [[${session.currentUser}]];
+
+        function connect() {
+            var tattletaleURL = [[${session.tattletaleURL}]];
+            var socket = new SockJS(tattletaleURL + 'tattletale');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({userId: currentUser.id}, function (frame) {
+                stompClient.subscribe("/user/topic/greetings", function (message) {
+                    var message = JSON.parse(message.body);
+                    $.get("/terminator/sys/offices/findOffice?id=" + message.sourceid, function (office) {
+                        $("#officeName").text(office.officeName);
+                    });
+                    $.get("/terminator/sys/relics/findRelic?id=" + message.alarmpointid, function (relic) {
+                        $("#relicName").text(relic.name);
+                    });
+                    $("#factor").text(message.factor);
+                    $("#singleAlarmRecordModel").modal("show");
+                    var alarmTaskCount = $("#alarmTaskCount").text();
+                    $("#alarmTaskCount").removeClass("hide");
+                    $("#alarmTaskCount").text(parseInt(alarmTaskCount) + 1);
+                });
+            });
+        }
+
+        if (stompClient == null) {
+            connect();
+        }
+        if (alarmTaskCount != 0) {
+            setInterval(function () {
+                $("#flag").fadeOut(100).fadeIn(100);
+            }, 200);
+        }
+        var loginAlarm = [[${loginAlarm}]];
+        if (loginAlarm != null) {
+            $("#alarmRecordModel").modal("show");
+        }
+        $(".aware").click(function () {
+            $("#alarmRecordModel").modal("hide");
+            $("#singleAlarmRecordModel").modal("hide");
+            $.get("/terminator/analysis/awareRecords/save", function (data) {
+            });
+        });
+    });
+</script>
+</html>

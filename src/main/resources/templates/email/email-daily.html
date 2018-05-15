@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+</head>
+<body>
+<div>
+    <strong style="font-size: large">
+        <div style="margin-bottom: 10px"><span th:text="${name}"></span>，你好：</div>
+        <div style="margin-left: 30px">以下是报警统计日报，请查收。</div>
+    </strong>
+    <div style="margin: 20px;margin-left: 0px"><strong>附1：统计项/统计值</strong></div>
+    <table border="1" width="300px" style="margin-bottom: 10px">
+        <tr style="text-align: center">
+            <th>统计项</th>
+            <th>统计值</th>
+        </tr>
+        <tr style="text-align: center;background-color: lightgrey">
+            <td>昨日报警总数</td>
+            <td th:text="${dailyReport.totalCount}"></td>
+        </tr>
+        <tr style="text-align: center">
+            <td>等待处理总数</td>
+            <td th:text="${dailyReport.totalPendingCount}"></td>
+        </tr>
+        <tr style="text-align: center;background-color: lightgrey">
+            <td>我的任务总数</td>
+            <td th:text="${dailyReport.userPendingCount}"></td>
+        </tr>
+        <tr style="text-align: center">
+            <td>异常设备总数</td>
+            <td th:text="${#lists.size(devices)}"></td>
+        </tr>
+    </table>
+    <div style="margin: 20px;margin-left: 0px"><strong>附2：待处理报警</strong></div>
+    <table border="1" width="800px">
+        <tr style="text-align: center">
+            <th>编号</th>
+            <th>机构</th>
+            <th>文物</th>
+            <th>报警原因</th>
+            <th>报警时间</th>
+            <th>状态</th>
+            <th>通知人</th>
+        </tr>
+        <tr th:each="alarmRecord:${pending}">
+            <td th:text="${alarmRecordStat.count}"></td>
+            <td th:text="${alarmRecord.office != null}?${alarmRecord.office.officeName}"></td>
+            <td th:text="${alarmRecord.relic != null}?${alarmRecord.relic.name}"></td>
+            <td th:text="${alarmRecord.factor}"></td>
+            <td th:text="${#dates.format(alarmRecord.alarmtime,'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${alarmRecord.state == 1}?'已处理':'待处理'"></td>
+            <td><span th:each="notifier:${alarmRecord.notifiers}"
+                      th:text="${notifier != null}?${notifier.name}+'/'"></span></td>
+        </tr>
+    </table>
+    <div style="margin: 20px;margin-left: 0px"><strong>附3：异常设备</strong></div>
+    <table border="1" width="800px">
+        <tr style="text-align: center">
+            <th>编号</th>
+            <th>机构</th>
+            <th>文物</th>
+            <th>位置点</th>
+            <th>设备编号</th>
+            <th>设备类型</th>
+            <th>设备状态</th>
+        </tr>
+        <tr th:each="device:${devices}">
+            <td th:text="${deviceStat.count}"></td>
+            <td th:text="${device.office != null}?${device.office.officeName}"></td>
+            <td th:text="${device.relic != null}?${device.relic.name}"></td>
+            <td th:text="${device.location != null}?${device.location.locationname}"></td>
+            <td th:text="${#strings.substring(device.nodeid,8)}"></td>
+            <div th:switch="${device.nodetype}">
+                <td th:case="1" th:text="节点"></td>
+                <td th:case="2" th:text="中继"></td>
+                <td th:case="3" th:text="主模块"></td>
+                <td th:case="5" th:text="控制模块"></td>
+                <td th:case="7" th:text="网关"></td>
+            </div>
+            <div th:switch="${device.anomaly}">
+                <td th:case="-1"><span th:text="超时" class="label label-danger"></span></td>
+                <td th:case="0"><span th:text="正常" class="label label-success"></span></td>
+                <td th:case="1"><span th:text="低电压" class="label label-warning"></span></td>
+                <td th:case="2"><span th:text="掉电" class="label label-warning"></span></td>
+            </div>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

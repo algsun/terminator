@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <title>文物修改</title>
+    <link type="text/css" rel="stylesheet" th:href="@{/webjars/bootstrap-fileinput/4.3.1/css/fileinput.min.css}">
+</head>
+<body>
+<section th:fragment="content">
+    <div class="box">
+        <!--提示信息-->
+        <div th:replace="notifyMessage :: notifyMessage(${success},${message})">
+
+        </div>
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li shiro:hasPermission="sys:relic:view"><a th:href="@{/sys/relics}">文物列表</a></li>
+                <li shiro:hasPermission="sys:relic:edit" class="active"><a href="">文物修改</a></li>
+            </ul>
+        </div>
+        <div class="row">
+            <div class="col-md-10">
+                <form id="relicForm" role="form" class="form-horizontal"
+                      enctype="multipart/form-data" method="post" th:object="${relic}"
+                      th:action="@{/sys/relics/{id}/update(id=*{id})}">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="name" class="control-label col-md-2">名称<i class="text-red">*</i></label>
+                            <div class="col-md-10">
+                                <input id="id" type="hidden" th:value="*{id}">
+                                <input id="name" class="form-control" name="name" th:value="*{name}"
+                                       htmlEscape="false" maxlength="100"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-md-2">时代<i class="text-red">*</i></label>
+                            <div class="col-md-10">
+                                <select class="form-control" name="eraId">
+                                    <option th:value="${era.id}" th:selected="*{eraId}==${era.id}"
+                                            th:each="era : ${eras}" th:text="${era.name}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-2">质地<i class="text-red">*</i></label>
+                            <div class="col-md-10">
+                                <select class="form-control" name="textureId">
+                                    <option th:value="${texture.id}" th:selected="*{textureId}==${texture.id}"
+                                            th:each="texture : ${textures}"
+                                            th:text="${texture.name}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-2">级别<i class="text-red">*</i></label>
+                            <div class="col-md-10">
+                                <select class="form-control" name="levelId">
+                                    <option th:value="${level.id}" th:each="level : ${levels}"
+                                            th:selected="*{levelId}==${level.id}"
+                                            th:text="${level.name}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lng" class="col-md-2 control-label">经度</label>
+                            <div class="col-md-10">
+                                <input class="form-control" name="lng" id="lng" th:value="*{lng}">
+                                <span class="text-muted">范围-180~180,小数部分最多6位</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lat" class="col-md-2 control-label">纬度</label>
+                            <div class="col-md-10">
+                                <input class="form-control" id="lat" name="lat" th:value="*{lat}">
+                                <span class="text-muted">范围-90~90,小数部分最多6位</span>
+                            </div>
+                        </div>
+                        <input type="hidden" th:field="*{photoId}">
+                        <input type="hidden" id="operation" value="noChange" name="operation">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="photo">图片</label>
+                            <div class="col-md-10">
+                                <input class="file-loading form-control" type="file" id="photo" name="relicPhoto"
+                                       placeholder="图片">
+                                <span class="text-muted">图片必须为jpg/png/jpeg格式</span>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div class="col-md-offset-2 col-md-10">
+                                <button shiro:hasPermission="sys:relic:edit" id="formSubmit" type="submit" class="btn btn-primary btn-sm">保存</button>
+                                <a type="input" class="btn btn-sm btn-default" th:href="@{/sys/relics}">返回</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<div th:fragment="script">
+    <script th:src="@{/webjars/jquery-validation/1.17.0/jquery.validate.min.js}" type="text/javascript"></script>
+    <script th:src="@{/webjars/jquery-validation/1.17.0/additional-methods.min.js}" type="text/javascript"></script>
+    <script th:src="@{/common/validation.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap-fileinput/4.3.1/js/fileinput.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap-fileinput/4.3.1/js/fileinput_locale_zh.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        $(function () {
+            $("#relicForm").validate({
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 30,
+                        remote: {
+                            url: "./checkName",
+                            type: "post",
+                            data: {
+                                name: function () {
+                                    return $("#name").val();
+                                },
+                                id: function () {
+                                    return $("#id").val();
+                                }
+                            }
+                        }
+                    },
+                    lng: {
+                        lng: true
+                    },
+                    lat: {
+                        lat: true
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "文物名称不能为空",
+                        maxlength: "文物名称最多30",
+                        remote: "文物名称已存在"
+                    }
+                }
+            });
+            var photo = [[${photo}]];
+            var initialCaption;
+            if (photo == null) {
+                initialCaption = ""
+            } else {
+                initialCaption = photo.path;
+            }
+            var url = "/terminator/images/" + initialCaption;
+            var photoOption = {
+                language: 'zh',
+                maxFileSize: 20000,
+                showRemove: true,
+                showUpload: false,
+                removeLabel: "删除",
+                removeClass: "btn btn-danger",
+                allowedFileExtensions: ["jpg", "png", "jpeg"],
+                initialCaption: initialCaption,
+                overwriteInitial: true,
+                initialPreview: [
+                    "<img src=" + url + " class='file-preview-image'>"
+                ],
+                initialPreviewAsData: true
+            };
+            if (initialCaption == "") {
+                photoOption.initialPreview = []
+            }
+            $("#photo").fileinput(photoOption);
+            $("#photo").change(function () {
+                $("#operation").val("change");
+            });
+
+            //$("#operation").val($(".file-caption-name").attr('title'));
+
+            $(".fileinput-remove").click(function () {
+                $("#operation").val("remove");
+            });
+            /*$(".btn-file").click(function () {
+             $("#operation").val("change");
+             });*/
+        });
+
+    </script>
+</div>
+
+</body>
+</html>

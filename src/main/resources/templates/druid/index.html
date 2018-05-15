@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http:www.thymeleaf.org">
+<head th:fragment="head">
+    <title>连接监视</title>
+</head>
+<body>
+<section th:fragment="content">
+    <iframe th:src="@{/druid/index.html}" width="100%" id="myiframe" scrolling="yes" onload="changeFrameHeight()"
+            frameborder="0"></iframe>
+</section>
+<div th:fragment="script">
+    <script type="text/javascript">
+        function changeFrameHeight() {
+            var ifm = $("#myiframe");
+            ifm.attr("height", $(window).height());
+        }
+        $(window).resize = function () {
+            changeFrameHeight();
+        }
+    </script>
+</div>
+</body>
+</html>

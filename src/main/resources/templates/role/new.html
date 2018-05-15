@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <title>角色添加</title>
+    <link th:href="@{/webjars/zTree/3.5.28/css/zTreeStyle/zTreeStyle.css}" rel="stylesheet" type="text/css">
+</head>
+<body>
+<section th:fragment="content">
+    <div class="box">
+        <!--<div class="box-header with-border">
+            <h3 class="box-title">角色添加</h3>
+        </div>-->
+        <!--提示信息-->
+        <div th:replace="notifyMessage :: notifyMessage(${success},${message})">
+
+        </div>
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li shiro:hasPermission="sys:role:view"><a th:href="@{/sys/roles}">角色列表</a></li>
+                <li shiro:hasPermission="sys:role:edit" class="active"><a href="">角色添加</a></li>
+            </ul>
+        </div>
+        <div class="row">
+            <div class="col-md-10">
+                <form id="roleForm" role="form" class="form-horizontal"
+                      th:action="@{/sys/roles}"
+                      method="post" th:object="${role}">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="name" class="control-label col-md-2">角色名称<i class="text-red">*</i></label>
+                            <div class="col-md-10">
+                                <input id="oldName" name="oldName" type="hidden" th:value="*{name}">
+                                <input id="name" class="form-control" name="name" th:value="*{name}"
+                                       htmlEscape="false" maxlength="100"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="menuTree" class="control-label col-md-2">角色授权<i class="text-red">*</i></label>
+                            <div class="col-md-10">
+                                <div id="menuTree" class="ztree" style="margin-top:3px;float:left;"></div>
+                                <input id="menuIds" hidden name="menuIds"/>
+                            </div>
+                            <div id="msg" class="col-md-8 col-md-offset-2 text-red" hidden >至少选择一个权限</div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-offset-2 col-md-10">
+                                <button shiro:hasPermission="sys:role:edit" id="formSubmit" type="submit"
+                                        class="btn btn-primary btn-sm">
+                                    保存
+                                </button>
+                                <a type="input" class="btn btn-sm btn-default"
+                                   th:href="@{/sys/roles}">返回</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<div th:fragment="script">
+    <script th:src="@{/webjars/jquery-validation/1.17.0/jquery.validate.min.js}" type="text/javascript"></script>
+    <script th:src="@{/webjars/jquery-validation/1.17.0/additional-methods.min.js}" type="text/javascript"></script>
+    <script th:src="@{/common/validation.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/zTree/3.5.28/js/jquery.ztree.all.min.js}"></script>
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function () {
+            $("#name").focus();
+            $("#roleForm").validate({
+                rules: {
+                    name: {
+                        required: true,
+                        maxlength: 100,
+                        remote: [[@{/}]]+"sys/roles/checkName?oldName ="+ encodeURIComponent($('#name').val())
+            }
+        },
+            messages: {
+                name: {
+                    required: "角色名不能为空",
+                            maxlength:"最大不超过100",
+                            remote:"角色名已经存在"
+                }
+            }
+            ,
+            submitHandler: function (form) {
+                var ids = [], nodes = tree.getCheckedNodes(true);
+                if (nodes.length == 0) {
+                    $("#msg").show();
+                    return false;
+                }
+                for (var i = 0; i < nodes.length; i++) {
+                    ids.push(nodes[i].id);
+                }
+                $("#menuIds").val(ids);
+                form.submit();
+            }
+        });
+
+            var setting = {
+                check: {enable: true, nocheckInherit: true}, view: {selectedMulti: false},
+                data: {simpleData: {enable: true}},
+                callback: {
+                    beforeClick: function (id, node) {
+                        tree.checkNode(node, !node.checked, true, true);
+                        return false;
+                    },
+                    onCheck: function () {
+                        tree.getCheckedNodes().length>0?$("#msg").hide():$("#msg").show()
+                    }
+                }
+            };
+
+            var zNodes = [];
+            var menus = [[${menus}]];
+            $.each(menus, function (index, menu) {
+                var pId = (menu.parentId != null) ? menu.parentId : 0;
+                var name = ((menu.parentId != null) ? menu.name : '权限列表') + "";
+                var zNode = "{id:" + menu.id + ",pId:" + pId + ",name:" + "'" + name + "'" + "}";
+                //zNode = zNode.substring(0,zNode.length-1);
+                zNode = eval('(' + zNode + ')');
+                zNodes.push(zNode);
+            });
+            // 初始化树结构
+            var tree = $.fn.zTree.init($("#menuTree"), setting, zNodes);
+            tree.setting.check.chkboxType = {"Y": "ps", "N": "ps"};
+            // 默认选择节点
+            var menuIds = [[${role.menuIds}]];
+            var ids = menuIds.split(",");
+            for (var i = 0; i < ids.length; i++) {
+                var node = tree.getNodeByParam("id", ids[i]);
+                try {
+                    tree.checkNode(node, true, false);
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+            // 默认展开全部节点
+            tree.expandAll(true);
+        });
+
+    </script>
+</div>
+
+</body>
+</html>

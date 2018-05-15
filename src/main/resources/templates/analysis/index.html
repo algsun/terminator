@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <title>日报</title>
+    <!--<link th:href="@{/common/css/base.css}" rel="stylesheet" type="text/css">-->
+</head>
+<body>
+<section th:fragment="content">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon fa fa-fw fa-warning"
+                      style="background-color: #f39c12;color: #fff"></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">昨日报警总数</span>
+                    <span class="info-box-number"><span th:text="${dailyReport.totalCount}"></span><small>条</small></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon fa fa-fw fa-hourglass-half"
+                      style="background-color: #dd4b39;color: #fff"></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">等待处理总数</span>
+                    <span class="info-box-number"><span th:text="${dailyReport.totalPendingCount}"></span><small>条</small></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon fa fa-fw fa-info"
+                      style="background-color: #00a65a;color: #fff"></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">我的任务总数</span>
+                    <span class="info-box-number"><span th:text="${dailyReport.userPendingCount}"></span><small>条</small></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-box">
+                <span class="info-box-icon fa fa-fw fa-minus-circle"
+                      style="background-color: #00c0ef;color: #fff"></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">异常设备总数</span>
+                    <span class="info-box-number"><span th:text="${#lists.size(devices)}"></span><small>台</small></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box" style="border-top: 0px">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="pull-left header"><i class="fa fa-th">报警详情</i></li>
+                        <li class="active"><a href="#pending" data-toggle="tab">待处理</a></li>
+                        <li><a href="#processed" data-toggle="tab">已处理</a></li>
+                        <a id="follower" class="btn btn-default"
+                           style="float: right;margin-right: 10px;font-size: 15px;height:30px;color: #000000;margin-bottom: 10px;margin-top: 10px"
+                           th:data-follower="${currentUser.attention}">
+                                <span th:if="${currentUser.attention == 0}"><i class="fa fa-fw fa-plus"
+                                                                               style="color: #FFD700;"></i>关注</span>
+                            <span th:if="${currentUser.attention == 1}"><i class="fa fa-fw fa-check"
+                                                                           style="color: #6B8E23;"></i>已关注</span>
+                        </a>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="pending">
+                            <div class="box-body">
+                                <div style="height: 350px;overflow: auto">
+                                    <div th:if="${#bools.isFalse(#lists.isEmpty(pending))}">
+                                        <table class="table table-hover table-condensed table-striped table-bordered">
+                                            <thead>
+                                            <th>编号</th>
+                                            <th>机构</th>
+                                            <th>文物</th>
+                                            <th>报警原因</th>
+                                            <th>报警时间</th>
+                                            <th>通知人</th>
+                                            <th>状态</th>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="alarmRecord:${pending}">
+                                                <td th:text="${alarmRecordStat.count}"></td>
+                                                <td th:text="${alarmRecord.office != null}?${alarmRecord.office.officeName}"></td>
+                                                <td th:text="${alarmRecord.relic != null}?${alarmRecord.relic.name}"></td>
+                                                <td th:text="${alarmRecord.factor}"></td>
+                                                <td th:text="${#dates.format(alarmRecord.alarmtime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                                                <td><span th:each="notifier:${alarmRecord.notifiers}"
+                                                          th:text="${notifier != null}?${notifier.name}+' '"></span></td>
+                                                <div th:switch="${alarmRecord.state}">
+                                                    <td th:case="0"><span class="label label-warning">未处理</span></td>
+                                                    <td th:case="1"><span class="label label-success">已处理</span></td>
+                                                </div>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div th:if="${#bools.isTrue(#lists.isEmpty(pending))}"
+                                         style="margin: 30px;padding-bottom: 30px">
+                                        <h3>暂无数据</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="processed">
+                            <div class="box-body">
+                                <div style="height: 350px;overflow: auto">
+                                    <div th:if="${#bools.isFalse(#lists.isEmpty(processed))}">
+                                        <table class="table table-hover table-condensed table-striped table-bordered">
+                                            <thead>
+                                            <th>编号</th>
+                                            <th>机构</th>
+                                            <th>文物</th>
+                                            <th>报警原因</th>
+                                            <th>报警时间</th>
+                                            <th>通知人</th>
+                                            <th>处理人</th>
+                                            <th>处理措施</th>
+                                            <th>处理时间</th>
+                                            <th>状态</th>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="alarmRecord:${processed}">
+                                                <td th:text="${alarmRecordStat.count}"></td>
+                                                <td th:text="${alarmRecord.office != null}?${alarmRecord.office.officeName}"></td>
+                                                <td th:text="${alarmRecord.relic != null}?${alarmRecord.relic.name}"></td>
+                                                <td th:text="${alarmRecord.factor}"></td>
+                                                <td th:text="${#dates.format(alarmRecord.alarmtime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                                                <td><span th:each="notifier:${alarmRecord.notifiers}"
+                                                          th:text="${notifier != null}?${notifier.name}+' '"></span></td>
+                                                <td th:text="${alarmRecord.user != null}?${alarmRecord.user.name}"></td>
+                                                <td th:text="${alarmRecord.handlemeasure}"></td>
+                                                <td th:text="${#dates.format(alarmRecord.handletime,'yyyy-MM-dd HH:mm:ss')}"></td>
+                                                <div th:switch="${alarmRecord.state}">
+                                                    <td th:case="0"><span class="label label-warning">未处理</span></td>
+                                                    <td th:case="1"><span class="label label-success">已处理</span></td>
+                                                </div>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div th:if="${#bools.isTrue(#lists.isEmpty(processed))}"
+                                         style="margin: 30px;padding-bottom: 30px">
+                                        <h3>暂无数据</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box" style="border-top: 0px">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="pull-left header"><i class="fa fa-th">异常设备</i></li>
+                    </ul>
+                    <div class="box-body">
+                        <div th:if="${#bools.isFalse(#lists.isEmpty(devices))}">
+                            <table class="table table-hover table-condensed table-striped table-bordered">
+                                <thead>
+                                <th>编号</th>
+                                <th>机构</th>
+                                <th>文物</th>
+                                <th>位置点</th>
+                                <th>设备编号</th>
+                                <th>设备类型</th>
+                                <th>设备状态</th>
+                                </thead>
+                                <tbody>
+                                <tr th:each="device:${devices}">
+                                    <td th:text="${deviceStat.count}"></td>
+                                    <td th:text="${device.office != null}?${device.office.officeName}"></td>
+                                    <td th:text="${device.relic != null}?${device.relic.name}"></td>
+                                    <td th:text="${device.location != null}?${device.location.locationname}"></td>
+                                    <td th:text="${#strings.substring(device.nodeid,8)}"></td>
+                                    <div th:switch="${device.nodetype}">
+                                        <td th:case="1" th:text="节点"></td>
+                                        <td th:case="2" th:text="中继"></td>
+                                        <td th:case="3" th:text="主模块"></td>
+                                        <td th:case="5" th:text="控制模块"></td>
+                                        <td th:case="7" th:text="网关"></td>
+                                    </div>
+                                    <div th:switch="${device.anomaly}">
+                                        <td th:case="-1"><span th:text="超时" class="label label-danger"></span></td>
+                                        <td th:case="0"><span th:text="正常" class="label label-success"></span></td>
+                                        <td th:case="1"><span th:text="低电压" class="label label-warning"></span></td>
+                                        <td th:case="2"><span th:text="掉电" class="label label-warning"></span></td>
+                                    </div>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div th:if="${#bools.isTrue(#lists.isEmpty(devices))}"
+                             style="margin: 30px;padding-bottom: 30px">
+                            <h3>暂无数据</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:fragment="script">
+    <!--<script th:replace="common/js"></script>-->
+    <script type="text/javascript" th:inline="javascript">
+        $(function () {
+//        关注/已关注
+            $("#follower").click(function () {
+                var $this = $(this);
+                var $follower = $(this).data("follower");
+                $.get("/terminator/analysis/daily/subscribe?follower=" + $follower, function (data) {
+                    if (data) {
+                        $this.empty();
+                        if ($follower == 0) {
+                            $this.data("follower", 1);
+                            $this.append("<i class='fa fa-fw fa-check' style='color: #6B8E23;'></i>已关注");
+                        } else if ($follower == 1) {
+                            $this.data("follower", 0);
+                            $this.append("<i class='fa fa-fw fa-plus' style='color: #FFD700;'></i>关注");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

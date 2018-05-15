@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.microwise.terminator.sys.mapper.RelicMapper">
+    <resultMap id="BaseResultMap" type="com.microwise.terminator.sys.entity.Relic">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="era_id" jdbcType="VARCHAR" property="eraId"/>
+        <result column="texture_id" jdbcType="VARCHAR" property="textureId"/>
+        <result column="level_id" jdbcType="VARCHAR" property="levelId"/>
+        <result column="office_id" jdbcType="VARCHAR" property="officeId"/>
+        <result column="photo_id" jdbcType="VARCHAR" property="photoId"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_date" jdbcType="TIMESTAMP" property="updateDate"/>
+        <result column="del_flag" jdbcType="BIT" property="delFlag"/>
+    </resultMap>
+
+
+    <select id="find">
+      SELECT
+        r.`name` AS `name`,
+        e.`name` AS `era.name`,
+        l.`name` AS `level.name`,
+        t.`name` AS `texture.name`
+      FROM
+        sys_relic r
+      JOIN sys_era e
+        ON r.`era_id` = e.`id`
+      JOIN sys_level l
+        ON r.`level_id` = l.`id`
+      JOIN sys_texture t
+        ON r.`texture_id` = t.`id`
+      JOIN sys_photo p
+        ON r.`photo_id` = p.`id`
+    </select>
+
+    <!-- 查询文物所有位置点实时状态 -->
+    <select id="findLocationInfo" resultType="RealtimeDataVO"
+            parameterType="java.util.Map">
+        <![CDATA[
+        SELECT
+          l.id AS locationId,
+          l.nodeId,
+          l.locationName,
+          mnm.lowvoltage,
+          mnm.anomaly,
+          mnm.deviceMode,
+          r.id relicId,
+          r.name relicName,
+          mnm.stamp
+        FROM
+          m_location l
+        INNER JOIN m_location_sensor mls ON mls.locationId=l.id
+        LEFT JOIN m_nodeinfomemory mnm ON l.nodeId = mnm.nodeId
+        LEFT JOIN sys_relic r ON l.zoneId = r.id WHERE r.id = #{relicId}
+ 		]]>
+        <if test="sensorPhysicalidList !=null">
+            AND mls.sensorPhysicalId IN
+            <foreach collection="sensorPhysicalidList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <![CDATA[
+		 GROUP BY l.id ORDER BY r.name,l.id
+		]]>
+    </select>
+
+    <!-- 查询文物拥有已经激活的监测指标 -->
+    <select id="findSensorinfo" parameterType="java.util.HashMap"
+            resultType="Sensorinfo">
+        <![CDATA[
+			SELECT DISTINCT
+              s.sensorPhysicalid AS sensorPhysicalid,
+              s.cn_name AS cnName,
+              ]]>
+        <![CDATA[
+              s.sensorPrecision AS sensorPrecision,
+              s.units AS units,
+              s.positions AS positions,
+              s.showType AS showType,
+              s.conditionType AS conditionType,
+              s.target AS target,
+              s.floating AS floating
+            FROM
+              m_sensorinfo AS s
+              INNER JOIN m_location_sensor AS mls
+                ON s.sensorPhysicalid = mls.sensorPhysicalid
+              INNER JOIN m_location AS l
+                ON l.id = mls.locationId
+            WHERE s.isActive = 1
+			AND	l.zoneId = #{relicId}
+			]]>
+        <![CDATA[
+			ORDER BY s.sensorPhysicalid
+        ]]>
+    </select>
+</mapper>

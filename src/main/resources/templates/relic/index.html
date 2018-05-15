@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <title>文物管理</title>
+</head>
+<body>
+<section th:fragment="content" >
+    <!--提示信息-->
+    <div th:replace="notifyMessage :: notifyMessage(${success},${message})">
+
+    </div>
+
+    <div class="box">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li shiro:hasPermission="sys:relic:view" role="presentation" class="active"><a th:href="@{/sys/relics}">文物列表</a></li>
+                <li shiro:hasPermission="sys:relic:edit" role="presentation"><a th:href="@{/sys/relics/new}">文物添加</a></li>
+            </ul>
+        </div>
+
+        <!-- /.box-header -->
+        <div class="box-body">
+          <form th:action="@{/sys/relics}">
+            <div class="input-group col-md-3" style="margin-bottom: 10px">
+                <input type="text" name="name" th:value="${name}" class="form-control searchCondition" placeholder="文物名称"/>
+                <span class="input-group-btn">
+                        <button type="submit" class="btn bg-yellow btn-search">查找
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                        </button>
+                </span>
+            </div>
+          </form>
+            <h3 th:if="${#lists.isEmpty(pageInfo.list)}">暂无数据</h3>
+            <table th:if="${not #lists.isEmpty(pageInfo.list)}"
+                   class="table table-bordered table-hover table-striped table-condensed">
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>时代</th>
+                    <th>级别</th>
+                    <th>质地</th>
+                    <th><span shiro:hasPermission="sys:role:edit">操作</span></th>
+                </tr>
+                <tr th:each="relic : ${pageInfo.list}" th:object="${relic}">
+                    <td th:text="${relicStat.count}"></td>
+                    <td th:text="*{name}"></td>
+                    <td th:text="*{era.name}"></td>
+                    <td th:text="*{level.name}"></td>
+                    <td th:text="*{texture.name}"></td>
+                    <td>
+                        <a  class="btn btn-warning btn-xs" shiro:hasPermission="sys:relic:edit"
+                           th:href="@{/sys/relics/edit(id=${relic.id})}">修改<span
+                                class="glyphicon glyphicon-edit"></span></a>
+                        <a th:data-id="${relic.id}" shiro:hasPermission="sys:relic:edit"
+                           class="btn btn-danger btn-xs btn-del">删除<span class="glyphicon glyphicon-remove"></span></a>
+                        <a th:href="@{/alarmStrategy/{relicId}/index(relicId=${relic.id})}"
+                           shiro:hasPermission="sys:relic:edit"
+                           class="btn btn-primary btn-xs">报警策略<span class="glyphicon glyphicon-list"></span></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!--分页-->
+        <div th:replace="navigation :: navigation(${pageInfo})">
+
+        </div>
+    </div>
+    <!-- /.box -->
+    <!--删除弹出model-->
+    <div th:include="deleteModel :: deleteModel"></div>
+</section>
+<div th:fragment="script">
+    <script th:inline="javascript">
+        $(function () {
+            var id;
+            var $this;
+            $(".btn-del").click(function () {
+                id = $(this).data("id");
+                $this = $(this);
+                $('#myModal').modal('toggle');
+            });
+
+            $('#okBtn').click(function () {
+                $('#myModal').modal('toggle');
+                var url = [[@{/}]]+"sys/relics/"+id+"/delete";
+                    window.location.href = url;
+                }
+                );
+        });
+    </script>
+</div>
+
+</body>
+</html>

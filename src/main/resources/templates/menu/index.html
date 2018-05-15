@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:fragment="head">
+    <title>菜单管理</title>
+    <meta name="decorator" content="default"/>
+    <link th:href="@{/assets/treeTable/themes/vsStyle/treeTable.min.css}" rel="stylesheet" type="text/css">
+</head>
+<body>
+<section th:fragment="content">
+    <!--<ul class="nav nav-tabs">
+        <li class="active"><a href="/sys/menu/">菜单列表</a></li>
+    </ul>-->
+    <!--提示信息-->
+    <div th:replace="notifyMessage :: notifyMessage(${success},${message})">
+
+    </div>
+    <div class="box-header with-border">
+        <h3 class="box-title">菜单管理</h3>
+    </div>
+    <div class="box box-info">
+        <form id="listForm" method="post">
+            <table id="treeTable" class="table   table-hover table-condensed table-striped">
+                <thead>
+                <tr>
+                    <th>名称</th>
+                    <th>链接</th>
+                    <th style="text-align:center;">排序</th>
+                    <th>可见</th>
+                    <th>权限标识</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="menu :${menus}" th:id="${menu.id}"
+                    th:pId="${((menu.parent.id =='1') ? '0': menu.parent.id)}">
+                    <td th:text="${menu.name}"></td>
+                    <td th:text="${menu.href}"></td>
+                    <td style="text-align:center;">
+                        <input type="hidden" name="ids" th:value="${menu.id}"/>
+                        <input name="sorts" type="number" min="0"  max="65535"  th:class="${menu.isShow}?'show':'hide'"  th:value="${menu.sort}"
+                               style="width:50px;margin:0;padding:0;text-align:center;">
+                    </td>
+                    <td th:text="${menu.isShow?'显示':'隐藏'}"></td>
+                    <td th:text="${menu.permission}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+        <div class="form-actions pagination-left" shiro:hasPermission="sys:menu:edit">
+            <input id="btnSubmit" class="btn btn-primary" type="button" value="保存排序" onclick="updateSort();"/>
+        </div>
+</section>
+<div th:fragment="script">
+    <script th:src="@{/assets/treeTable/jquery.treeTable.min.js}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#treeTable").treeTable({expandLevel: 2}).show();
+        });
+        function updateSort() {
+            $("#listForm").attr("action", "/terminator/sys/menus");
+            $("#listForm").submit();
+        }
+    </script>
+</div>
+</body>
+</html>
